@@ -1,0 +1,5 @@
+print(5 + 3);
+print(-10);
+print(1 == 2);
+print("hola mundo");
+

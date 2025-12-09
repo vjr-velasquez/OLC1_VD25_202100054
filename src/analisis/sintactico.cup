@@ -1,0 +1,144 @@
+package analisis;
+// importaciones
+import java_cup.runtime.Symbol;
+import java.util.LinkedList;
+import abstracto.Instruccion;
+import Simbolo.Tipo;
+import Simbolo.tipoDato;
+//instrucciones
+import instrucciones.Print;
+//expresiones
+import expresiones.Nativo;
+import expresiones.OperadoresAritmeticos;
+import expresiones.Aritmeticas;
+import expresiones.OperadoresRelacionales;
+import expresiones.Relacionales;
+
+
+parser code
+{:
+        public parser(scanner s){
+            // Le decimos al parser de CUP que use este scanner
+            super(s);
+        }
+
+        public void syntax_error(Symbol s){
+            System.out.println("Error sintactico en la linea " + (s.left) + 
+                               " y columna " + (s.right) + 
+                               ". No se esperaba el siguiente componente: " + (s.value));
+        }
+
+        public void unrecovered_syntax_error(Symbol s){
+            System.out.println("Error sintactico no recuperable en la linea " + (s.left) + 
+                               " y columna " + (s.right) + 
+                               ". No se esperaba el siguiente componente: " + (s.value));
+        }
+:}
+
+
+action code
+{:
+:}
+
+//terminales
+terminal String CADENA, ENTERO, DECIMAL;
+terminal Character CHAR;
+terminal FINCADENA, PRINT, PAR1, PAR2, MAS, MENOS, POR, DIV, MOD, UMENOS;
+terminal IGUAL, EQUALS, MENORQ, MENORIGUAL, MAYORQ, MAYORIGUAL, DIFERENTE;
+terminal TRUE, FALSE;
+
+
+
+// no terminales
+nonterminal LinkedList<Instruccion> INICIO, INSTRUCCIONES;
+nonterminal Instruccion INSTRUCCION;
+nonterminal Instruccion EXPRESION;
+
+//orden de precedencia final cuando se tenga declarado todos los simbolos en el lexico
+
+//precedence left OR;
+//precedence left AND;
+//precedence left XOR;
+//precedence right NOT;
+//precedence left IGUALACION, DIFERENTE, MENORQ, MAYORQ, MENORIGUAL, MAYORIGUAL;
+//precedence left SUMA, MENOS;
+//precedence left MULTIPLICACION, DIVISION, MODULO;
+//precedence nonassoc POTENCIA;
+//precedence right UMENOS;
+
+precedence left EQUALS, DIFERENTE, MENORQ, MENORIGUAL, MAYORQ, MAYORIGUAL;
+precedence left MAS, MENOS;
+precedence left POR, DIV, MOD;
+precedence right UMENOS;
+
+
+start with INICIO;
+
+INICIO ::= INSTRUCCIONES:a   {: RESULT = a; :}
+;
+
+INSTRUCCIONES ::= INSTRUCCIONES:a INSTRUCCION:b {: RESULT = a; RESULT.add(b); :}
+                | INSTRUCCION:a                {: RESULT = new LinkedList<>(); RESULT.add(a); :}
+;
+INSTRUCCION ::= PRINT PAR1 EXPRESION:a PAR2 FINCADENA {: RESULT =  new Print(a, aleft, aright);:}
+;
+
+EXPRESION ::=
+      MENOS EXPRESION:a
+        {: RESULT = new Aritmeticas(OperadoresAritmeticos.NEGACION, a, aleft, aright); :} %prec UMENOS
+
+    | EXPRESION:a MAS   EXPRESION:b
+        {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.SUMA,  aleft, aright); :}
+
+    | EXPRESION:a MENOS EXPRESION:b
+        {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.RESTA, aleft, aright); :}
+
+    | EXPRESION:a POR   EXPRESION:b
+        {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.MULTIPLICACION, aleft, aright); :}
+
+    | EXPRESION:a DIV   EXPRESION:b
+        {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.DIVISION, aleft, aright); :}
+
+    | EXPRESION:a MOD   EXPRESION:b
+        {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.MODULO, aleft, aright); :}
+
+    | EXPRESION:a IGUAL IGUAL EXPRESION:b
+        {: RESULT = new Relacionales(a, b, OperadoresRelacionales.EQUALS, aleft, aright); :} %prec EQUALS
+
+    | EXPRESION:a MENORQ      EXPRESION:b
+        {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MENORQ, aleft, aright); :}
+
+    | EXPRESION:a MAYORQ      EXPRESION:b
+        {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MAYORQ, aleft, aright); :}
+
+    | EXPRESION:a MENORIGUAL  EXPRESION:b
+        {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MENORIGUAL, aleft, aright); :}
+
+    | EXPRESION:a MAYORIGUAL  EXPRESION:b
+        {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MAYORIGUAL, aleft, aright); :}
+
+    | EXPRESION:a DIFERENTE   EXPRESION:b
+        {: RESULT = new Relacionales(a, b, OperadoresRelacionales.DIFERENTE, aleft, aright); :}
+
+    | PAR1 EXPRESION:a PAR2
+        {: RESULT = a; :}
+
+    | ENTERO:a
+        {: RESULT = new Nativo(Integer.parseInt(a), new Tipo(tipoDato.ENTERO), aleft, aright); :}
+
+    | DECIMAL:a
+        {: RESULT = new Nativo(new Double(a), new Tipo(tipoDato.DECIMAL), aleft, aright); :}
+
+    | CHAR:a
+        {: RESULT = new Nativo(a, new Tipo(tipoDato.CARACTER), aleft, aright); :}
+
+    | CADENA:a
+        {: RESULT = new Nativo(a, new Tipo(tipoDato.CADENA), aleft, aright); :}
+
+    | TRUE:a
+        {: RESULT = new Nativo(true,  new Tipo(tipoDato.BOOLEANO), aleft, aright); :}
+
+    | FALSE:a
+        {: RESULT = new Nativo(false, new Tipo(tipoDato.BOOLEANO), aleft, aright); :}
+;
+

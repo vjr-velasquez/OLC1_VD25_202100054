@@ -1,0 +1,94 @@
+package analisis;
+
+import java_cup.runtime.Symbol;
+
+%%
+
+%{
+
+%}
+
+%init{
+    yyline = 1;
+    yycolumn = 1;
+%init}
+
+
+%cup
+%class scanner
+%public 
+%line
+%char
+%column
+%full
+%ignorecase
+
+
+//simbolos del sistema
+
+PAR1 = "("
+PAR2 = ")"
+MAS = "+"
+MENOS = "-"
+IGUAL = "="
+
+POR  = "*"
+DIV  = "/"
+MOD  = "%"
+
+MENORIGUAL = "<="
+MAYORIGUAL = ">="
+DIFERENTE  = "!="
+MENORQ     = "<"
+MAYORQ     = ">"
+
+
+
+
+
+
+
+
+FINCADENA = ";"
+BLANCOS = [\ \r\t\f\n]+
+ENTERO = [0-9]+
+DECIMAL = [0-9]+"."[0-9]+
+CHAR = \'([^\'\\]|\\.)\'
+CADENA = [\"]([^\"])*[\"]
+// palabras reservadas
+PRINT = "print"
+TRUE="true"
+FALSE="false"
+%%
+<YYINITIAL> {BLANCOS} { }
+<YYINITIAL> {PRINT} {return new Symbol(sym.PRINT, yyline, yycolumn, yytext());}
+<YYINITIAL> {DECIMAL} {return new Symbol(sym.DECIMAL, yyline, yycolumn, yytext());}
+<YYINITIAL> {ENTERO} {return new Symbol(sym.ENTERO, yyline, yycolumn, yytext());} 
+<YYINITIAL> {POR}         {return new Symbol(sym.POR, yyline, yycolumn, yytext());}
+<YYINITIAL> {DIV}         {return new Symbol(sym.DIV, yyline, yycolumn, yytext());}
+<YYINITIAL> {MOD}         {return new Symbol(sym.MOD, yyline, yycolumn, yytext());}
+
+<YYINITIAL> {MENORIGUAL}  {return new Symbol(sym.MENORIGUAL, yyline, yycolumn, yytext());}
+<YYINITIAL> {MAYORIGUAL}  {return new Symbol(sym.MAYORIGUAL, yyline, yycolumn, yytext());}
+<YYINITIAL> {DIFERENTE}   {return new Symbol(sym.DIFERENTE, yyline, yycolumn, yytext());}
+<YYINITIAL> {MENORQ}      {return new Symbol(sym.MENORQ, yyline, yycolumn, yytext());}
+<YYINITIAL> {MAYORQ}      {return new Symbol(sym.MAYORQ, yyline, yycolumn, yytext());}
+
+<YYINITIAL> {CHAR} {
+    String texto = yytext();       // 'A'
+    char contenido = texto.charAt(1);  // A
+    return new Symbol(sym.CHAR, yyline, yycolumn, contenido);
+}
+<YYINITIAL> {CADENA} {
+    String cadena = yytext();
+    cadena = cadena.substring(1, cadena.length()-1);
+    return new Symbol(sym.CADENA, yyline, yycolumn,cadena);
+    }
+<YYINITIAL> {TRUE} {return new Symbol(sym.TRUE, yyline, yycolumn,yytext());}
+<YYINITIAL> {FALSE} {return new Symbol(sym.FALSE, yyline, yycolumn,yytext());}
+<YYINITIAL> {FINCADENA} {return new Symbol(sym.FINCADENA, yyline, yycolumn, yytext());}
+<YYINITIAL> {PAR1} {return new Symbol(sym.PAR1, yyline, yycolumn, yytext());}
+<YYINITIAL> {PAR2} {return new Symbol(sym.PAR2, yyline, yycolumn, yytext());}
+<YYINITIAL> {MAS} {return new Symbol(sym.MAS, yyline, yycolumn, yytext());}
+<YYINITIAL> {MENOS} {return new Symbol(sym.MENOS, yyline, yycolumn, yytext());}
+<YYINITIAL> {IGUAL} {return new Symbol(sym.IGUAL, yyline, yycolumn, yytext());}
