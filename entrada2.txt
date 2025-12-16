@@ -1,21 +1,58 @@
-print(5 + 3);          
-print(5 - 2);         
-print(5 - 2.5);        
+print("----------- SWITCH -----------");
 
-print(4 * 3);         
-print(4 * 2.5);        
-print(2.5 * 2);        
+var opcion: int = 1;
 
-print(5 / 2);          
-print(5 / 2.0);        
-print(5.0 / 2);        
+while (opcion <= 4) {
 
-print(5 % 2);          
-print(5 % 2.5);        
-print(5.5 % 2);        
-print(5.5 % 2.0);      
+    switch(opcion) {
 
-print('A' - 1);        
-print('A' * 2);        
-print('A' / 2);        
+        case 1:
+        {
+            print("Opcion 1: Mensaje simple");
+            print("Hola Compi1!");
+        }
 
+        case 2:
+        {
+            print("Opcion 2: Tabla de multiplicar con for anidado");
+
+            var i: int;
+            var j: int;
+
+            for (i = 1; i <= 3; i = i + 1) {
+                print("Fila " + i + ":");
+
+                for (j = 1; j <= 3; j = j + 1) {
+                    print("   " + i + " x " + j + " = " + (i * j));
+                }
+            }
+        }
+
+        case 3:
+        {
+            print("Opcion 3: Suma condicional de numeros pares");
+
+            var suma: int = 0;
+            var x: int = 0;
+
+            for (x = 1; x <= 10; x = x + 1) {
+
+                if (x % 2 == 0) {
+                    suma = suma + x;
+                }
+            }
+
+            print("La suma de los numeros pares del 1 al 10 es: " + suma);
+        }
+
+        default:
+        {
+            print("Default: opcion no valida");
+        }
+    }
+
+    opcion = opcion + 1;
+    print("");
+}
+
+print("Fin del archivo de prueba.");

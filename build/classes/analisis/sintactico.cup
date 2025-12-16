@@ -1,38 +1,59 @@
 package analisis;
+
 // importaciones
 import java_cup.runtime.Symbol;
 import java.util.LinkedList;
+
 import abstracto.Instruccion;
 import Simbolo.Tipo;
 import Simbolo.tipoDato;
-//instrucciones
-import instrucciones.Print;
-//expresiones
+
+// expresiones
 import expresiones.Nativo;
-import expresiones.OperadoresAritmeticos;
 import expresiones.Aritmeticas;
-import expresiones.OperadoresRelacionales;
+import expresiones.OperadoresAritmeticos;
 import expresiones.Relacionales;
+import expresiones.OperadoresRelacionales;
+import expresiones.Logicas;
+import expresiones.OperadoresLogicos;
+import expresiones.AccesoVar;
+
+// instrucciones
+import instrucciones.Print;
+import instrucciones.Declaracion;
+import instrucciones.AsignacionVar;
+import instrucciones.If;
+import instrucciones.While;
+import instrucciones.For;
+import instrucciones.Break;
+import instrucciones.Continue;
+import instrucciones.Switch;
+import instrucciones.CaseSwitch;
+
+import excepciones.Errores;
+import excepciones.ControlErrores;
 
 
 parser code
 {:
-        public parser(scanner s){
-            // Le decimos al parser de CUP que use este scanner
-            super(s);
-        }
 
-        public void syntax_error(Symbol s){
-            System.out.println("Error sintactico en la linea " + (s.left) + 
-                               " y columna " + (s.right) + 
-                               ". No se esperaba el siguiente componente: " + (s.value));
-        }
+    public parser(scanner s){
+        super(s);
+    }
 
-        public void unrecovered_syntax_error(Symbol s){
-            System.out.println("Error sintactico no recuperable en la linea " + (s.left) + 
-                               " y columna " + (s.right) + 
-                               ". No se esperaba el siguiente componente: " + (s.value));
-        }
+    public void syntax_error(Symbol s){
+        String desc = "Error sintáctico. No se esperaba: " + s.value;
+        System.out.println(desc + " (línea " + s.left + ", columna " + s.right + ")");
+        Errores err = new Errores("SINTACTICO", desc, s.left, s.right);
+        ControlErrores.agregarError(err);
+    }
+
+    public void unrecovered_syntax_error(Symbol s){
+        String desc = "Error sintáctico NO recuperable. No se esperaba: " + s.value;
+        System.out.println(desc + " (línea " + s.left + ", columna " + s.right + ")");
+        Errores err = new Errores("SINTACTICO", desc, s.left, s.right);
+        ControlErrores.agregarError(err);
+    }
 :}
 
 
@@ -40,53 +61,218 @@ action code
 {:
 :}
 
-//terminales
-terminal String CADENA, ENTERO, DECIMAL;
+// ========== TERMINALES ==========
+
+// con valor
+terminal String    CADENA, ENTERO, DECIMAL, ID, INT, DOUBLE, STRING, VAR;
 terminal Character CHAR;
-terminal FINCADENA, PRINT, PAR1, PAR2, MAS, MENOS, POR, DIV, MOD, UMENOS;
-terminal IGUAL, EQUALS, MENORQ, MENORIGUAL, MAYORQ, MAYORIGUAL, DIFERENTE;
-terminal TRUE, FALSE;
+
+// sin valor
+terminal FINCADENA, PRINT, PAR1, PAR2, MAS, MENOS, UMENOS, DOSPUNTOS;
+terminal IGUAL, EQUALS;
+terminal TRUE, FALSE, BOOL;
+terminal IF, ELSE, LLAVEIZQ, LLAVEDER;
+terminal SWITCH, CASE, DEFAULT;
+terminal _while, _for, _break, _continue;
 
 
+terminal POR, DIV, MOD, POT;
+terminal MENORQ, MAYORQ, MENORIGUAL, MAYORIGUAL, DIFERENTE;
+terminal AND, OR, XOR, NOT;
 
-// no terminales
+// ========== NO TERMINALES ==========
+
 nonterminal LinkedList<Instruccion> INICIO, INSTRUCCIONES;
 nonterminal Instruccion INSTRUCCION;
 nonterminal Instruccion EXPRESION;
+nonterminal Instruccion DECLARACION, ASIGNACION;
+nonterminal Tipo TIPOS;
+nonterminal Instruccion SIF;
+nonterminal Instruccion SWHILE, SFOR, STRANS;
+nonterminal Instruccion ASIG_FOR;
 
-//orden de precedencia final cuando se tenga declarado todos los simbolos en el lexico
+nonterminal Instruccion SSWITCH;
+nonterminal LinkedList<CaseSwitch> LCASES;
+nonterminal CaseSwitch CASEITEM;
+nonterminal LinkedList<Instruccion> DFLT_OPT;
 
-//precedence left OR;
-//precedence left AND;
-//precedence left XOR;
-//precedence right NOT;
-//precedence left IGUALACION, DIFERENTE, MENORQ, MAYORQ, MENORIGUAL, MAYORIGUAL;
-//precedence left SUMA, MENOS;
-//precedence left MULTIPLICACION, DIVISION, MODULO;
-//precedence nonassoc POTENCIA;
-//precedence right UMENOS;
 
+// ========== PRECEDENCIAS ==========
+
+// lógicos
+precedence left OR;
+precedence left XOR;
+precedence left AND;
+precedence right NOT;
+
+// relacionales
 precedence left EQUALS, DIFERENTE, MENORQ, MENORIGUAL, MAYORQ, MAYORIGUAL;
+
+// aritméticos
 precedence left MAS, MENOS;
 precedence left POR, DIV, MOD;
+precedence nonassoc POT;
+
+// unario
 precedence right UMENOS;
 
-
+// símbolo inicial
 start with INICIO;
+
+// ========== PRODUCCIONES ==========
 
 INICIO ::= INSTRUCCIONES:a   {: RESULT = a; :}
 ;
 
-INSTRUCCIONES ::= INSTRUCCIONES:a INSTRUCCION:b {: RESULT = a; RESULT.add(b); :}
-                | INSTRUCCION:a                {: RESULT = new LinkedList<>(); RESULT.add(a); :}
-;
-INSTRUCCION ::= PRINT PAR1 EXPRESION:a PAR2 FINCADENA {: RESULT =  new Print(a, aleft, aright);:}
+INSTRUCCIONES ::=
+      INSTRUCCIONES:a INSTRUCCION:b
+        {: RESULT = a; RESULT.add(b); :}
+    | INSTRUCCION:a
+        {: RESULT = new LinkedList<>(); RESULT.add(a); :}
 ;
 
+// Instrucciones de alto nivel
+INSTRUCCION ::=
+      PRINT PAR1 EXPRESION:a PAR2 FINCADENA
+        {: RESULT = new Print(a, aleft, aright); :}
+    | DECLARACION:a  {: RESULT = a; :}
+    | ASIGNACION:a   {: RESULT = a; :}
+    | SIF:a          {: RESULT = a; :}
+    | SWHILE:a       {: RESULT = a; :}
+    | SFOR:a         {: RESULT = a; :}
+    | STRANS:a       {: RESULT = a; :}
+    | SSWITCH:a      {: RESULT = a; :}
+;
+
+// ---------- SWITCH / CASE / DEFAULT ----------
+
+SSWITCH ::=
+    SWITCH PAR1 EXPRESION:cond PAR2
+    LLAVEIZQ LCASES:cases DFLT_OPT:def LLAVEDER
+    {:
+        RESULT = new Switch(cond, cases, def, condleft, condright);
+    :}
+;
+
+LCASES ::=
+      /* vacío */
+        {:
+            RESULT = new LinkedList<CaseSwitch>();
+        :}
+    | LCASES:ls CASEITEM:c
+        {:
+            ls.add(c);
+            RESULT = ls;
+        :}
+;
+
+CASEITEM ::=
+    CASE EXPRESION:exp DOSPUNTOS
+    LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
+    {:
+        RESULT = new CaseSwitch(exp, lista);
+    :}
+;
+
+DFLT_OPT ::=
+      DEFAULT DOSPUNTOS
+      LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
+        {:
+            RESULT = lista;
+        :}
+    | /* vacío */
+        {:
+            RESULT = null;
+        :}
+;
+
+
+
+
+// ---------- WHILE ----------
+
+SWHILE ::=
+    _while PAR1 EXPRESION:cond PAR2 LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
+    {:
+        RESULT = new While(cond, lista, condleft, condright);
+    :}
+;
+
+// ---------- FOR ----------
+
+ASIG_FOR ::= 
+    ID:a IGUAL EXPRESION:b
+    {:
+        RESULT = new AsignacionVar(a, b, aleft, aright);
+    :}
+;
+
+SFOR ::=
+    _for PAR1 ASIG_FOR:ini FINCADENA
+         EXPRESION:cond FINCADENA
+         ASIG_FOR:act PAR2
+         LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
+    {:
+        RESULT = new For(ini, cond, act, lista, condleft, condright);
+    :}
+;
+
+// ---------- break / continue ----------
+
+STRANS ::=
+      _break:bk FINCADENA
+        {:
+            RESULT = new Break(bkleft, bkright);
+        :}
+    | _continue:ct FINCADENA
+        {:
+            RESULT = new Continue(ctleft, ctright);
+        :}
+;
+
+// ---------- IF / ELSE ----------
+
+SIF ::=
+      IF PAR1 EXPRESION:cond PAR2 LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
+        {: RESULT = new If(cond, lista, null, condleft, condright); :}
+    | IF PAR1 EXPRESION:cond PAR2 LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
+      ELSE LLAVEIZQ INSTRUCCIONES:listaElse LLAVEDER
+        {: RESULT = new If(cond, lista, listaElse, condleft, condright); :}
+;
+
+// ---------- Declaración de variables ----------
+
+DECLARACION ::= 
+      VAR ID:b DOSPUNTOS TIPOS:a IGUAL EXPRESION:c FINCADENA
+        {: RESULT = new Declaracion(b, c, a, aleft, aright); :}
+    | VAR ID:b DOSPUNTOS TIPOS:a FINCADENA
+        {: RESULT = new Declaracion(b, null, a, bleft, bright); :}
+;
+
+// ---------- Asignación de variables ----------
+
+ASIGNACION ::= 
+    ID:a IGUAL EXPRESION:b FINCADENA
+        {: RESULT = new AsignacionVar(a, b, aleft, aright); :}
+;
+
+// ---------- Tipos ----------
+
+TIPOS ::=
+      INT    {: RESULT = new Tipo(tipoDato.ENTERO);   :}
+    | DOUBLE {: RESULT = new Tipo(tipoDato.DECIMAL);  :}
+    | STRING {: RESULT = new Tipo(tipoDato.CADENA);   :}
+    | BOOL   {: RESULT = new Tipo(tipoDato.BOOLEANO); :}
+;
+
+// ========== EXPRESIONES ==========
+
 EXPRESION ::=
+    /* ----- UNARIO ----- */
       MENOS EXPRESION:a
         {: RESULT = new Aritmeticas(OperadoresAritmeticos.NEGACION, a, aleft, aright); :} %prec UMENOS
 
+    /* ----- ARITMÉTICOS ----- */
     | EXPRESION:a MAS   EXPRESION:b
         {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.SUMA,  aleft, aright); :}
 
@@ -102,23 +288,44 @@ EXPRESION ::=
     | EXPRESION:a MOD   EXPRESION:b
         {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.MODULO, aleft, aright); :}
 
+    | EXPRESION:a POT   EXPRESION:b
+        {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.POTENCIA, aleft, aright); :}
+
+    /* ----- RELACIONALES ----- */
+
     | EXPRESION:a IGUAL IGUAL EXPRESION:b
         {: RESULT = new Relacionales(a, b, OperadoresRelacionales.EQUALS, aleft, aright); :} %prec EQUALS
 
-    | EXPRESION:a MENORQ      EXPRESION:b
+    | EXPRESION:a DIFERENTE EXPRESION:b
+        {: RESULT = new Relacionales(a, b, OperadoresRelacionales.DIFERENTE, aleft, aright); :}
+
+    | EXPRESION:a MENORQ EXPRESION:b
         {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MENORQ, aleft, aright); :}
 
-    | EXPRESION:a MAYORQ      EXPRESION:b
+    | EXPRESION:a MAYORQ EXPRESION:b
         {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MAYORQ, aleft, aright); :}
 
-    | EXPRESION:a MENORIGUAL  EXPRESION:b
+    | EXPRESION:a MENORIGUAL EXPRESION:b
         {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MENORIGUAL, aleft, aright); :}
 
-    | EXPRESION:a MAYORIGUAL  EXPRESION:b
+    | EXPRESION:a MAYORIGUAL EXPRESION:b
         {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MAYORIGUAL, aleft, aright); :}
 
-    | EXPRESION:a DIFERENTE   EXPRESION:b
-        {: RESULT = new Relacionales(a, b, OperadoresRelacionales.DIFERENTE, aleft, aright); :}
+    /* ----- LÓGICOS ----- */
+
+    | EXPRESION:a AND EXPRESION:b
+        {: RESULT = new Logicas(a, b, OperadoresLogicos.AND, aleft, aright); :}
+
+    | EXPRESION:a OR EXPRESION:b
+        {: RESULT = new Logicas(a, b, OperadoresLogicos.OR, aleft, aright); :}
+
+    | EXPRESION:a XOR EXPRESION:b
+        {: RESULT = new Logicas(a, b, OperadoresLogicos.XOR, aleft, aright); :}
+
+    | NOT EXPRESION:a
+        {: RESULT = new Logicas(a, OperadoresLogicos.NOT, aleft, aright); :} %prec NOT
+
+    /* ----- PRIMARIOS ----- */
 
     | PAR1 EXPRESION:a PAR2
         {: RESULT = a; :}
@@ -136,9 +343,11 @@ EXPRESION ::=
         {: RESULT = new Nativo(a, new Tipo(tipoDato.CADENA), aleft, aright); :}
 
     | TRUE:a
-        {: RESULT = new Nativo(true,  new Tipo(tipoDato.BOOLEANO), aleft, aright); :}
+        {: RESULT = new Nativo(true,  new Tipo(tipoDato.BOOLEANO), aleft, aright ); :}
 
     | FALSE:a
-        {: RESULT = new Nativo(false, new Tipo(tipoDato.BOOLEANO), aleft, aright); :}
-;
+        {: RESULT = new Nativo(false, new Tipo(tipoDato.BOOLEANO), aleft, aright ); :}
 
+    | ID:a
+        {: RESULT = new AccesoVar(a, aleft, aright); :}
+;

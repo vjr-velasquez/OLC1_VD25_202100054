@@ -2,6 +2,8 @@ package expresiones;
 import abstracto.Instruccion;
 import Simbolo.*;
 import excepciones.Errores;
+import static expresiones.OperadoresRelacionales.EQUALS;
+import static expresiones.OperadoresRelacionales.MENORQ;
 
 
 public class Relacionales extends Instruccion {
@@ -31,8 +33,16 @@ public class Relacionales extends Instruccion {
         return switch (relacional) {
             case EQUALS ->
                 this.equals(condIzq, condDer);
+            case DIFERENTE ->
+                this.diferente(condIzq, condDer);
             case MENORQ ->
                 this.menor(condIzq, condDer);
+            case MENORIGUAL ->
+                this.menorIgual(condIzq, condDer);
+            case MAYORQ -> 
+                this.mayor(condIzq, condDer);
+            case MAYORIGUAL  -> 
+                this.mayorIgual(condIzq, condDer);
             default ->
                 new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
         };
@@ -68,10 +78,27 @@ public class Relacionales extends Instruccion {
                     default ->
                         new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
                 };
+            case BOOLEANO ->
+                switch (comparando2) {
+                    case BOOLEANO ->
+                        (boolean) comp1 == (boolean) comp2;
+                    default ->
+                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
+                };
             default ->
                 new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
         };
     }
+
+    
+    public Object diferente(Object comp1, Object comp2) {
+        Object eq = this.equals(comp1, comp2);
+        if (eq instanceof Errores) {
+            return eq;
+        }
+        return !((boolean) eq);
+    }
+    
 
     public Object menor(Object comp1, Object comp2) {
         var comparando1 = this.cond1.tipo.getTipo();
@@ -80,27 +107,127 @@ public class Relacionales extends Instruccion {
         return switch (comparando1) {
             case ENTERO ->
                 switch (comparando2) {
-                    case ENTERO ->
-                        (int) comp1 < (int) comp2;
-                    case DECIMAL ->
-                        (int) comp1 < (double) comp2;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional invaldo",
-                        this.linea, this.col);
+                    case ENTERO   -> (int) comp1 < (int) comp2;
+                    case DECIMAL  -> (int) comp1 < (double) comp2;
+                    case CARACTER -> (int) comp1 < (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invaldo",
+                                                 this.linea, this.col);
                 };
             case DECIMAL ->
                 switch (comparando2) {
-                    case ENTERO ->
-                        (double) comp1 < (int) comp2;
-                    case DECIMAL ->
-                        (double) comp1 < (double) comp2;
-                    default ->
-                        new Errores("SEMANTICO", "Relacional invaldo",
-                        this.linea, this.col);
+                    case ENTERO   -> (double) comp1 < (int) comp2;
+                    case DECIMAL  -> (double) comp1 < (double) comp2;
+                    case CARACTER -> (double) comp1 < (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invaldo",
+                                                 this.linea, this.col);
+                };
+            case CARACTER ->
+                switch (comparando2) {
+                    case ENTERO   -> (int) ((Character) comp1) < (int) comp2;
+                    case DECIMAL  -> (int) ((Character) comp1) < (double) comp2;
+                    case CARACTER -> (int) ((Character) comp1) < (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invaldo",
+                                                 this.linea, this.col);
                 };
             default ->
-                new Errores("SEMANTICO", "Relacional invaldo",
-                this.linea, this.col);
+                new Errores("SEMANTICO", "Relacional invaldo", this.linea, this.col);
         };
     }
+
+    
+    public Object mayor(Object comp1, Object comp2) {
+        var comparando1 = this.cond1.tipo.getTipo();
+        var comparando2 = this.cond2.tipo.getTipo();
+
+        return switch (comparando1) {
+            case ENTERO ->
+                switch (comparando2) {
+                    case ENTERO   -> (int) comp1 > (int) comp2;
+                    case DECIMAL  -> (int) comp1 > (double) comp2;
+                    case CARACTER -> (int) comp1 > (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            case DECIMAL ->
+                switch (comparando2) {
+                    case ENTERO   -> (double) comp1 > (int) comp2;
+                    case DECIMAL  -> (double) comp1 > (double) comp2;
+                    case CARACTER -> (double) comp1 > (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            case CARACTER ->
+                switch (comparando2) {
+                    case ENTERO   -> (int) ((Character) comp1) > (int) comp2;
+                    case DECIMAL  -> (int) ((Character) comp1) > (double) comp2;
+                    case CARACTER -> (int) ((Character) comp1) > (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            default ->
+                new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+        };
+    }  
+
+    
+    public Object menorIgual(Object comp1, Object comp2) {
+        var comparando1 = this.cond1.tipo.getTipo();
+        var comparando2 = this.cond2.tipo.getTipo();
+
+        return switch (comparando1) {
+            case ENTERO ->
+                switch (comparando2) {
+                    case ENTERO   -> (int) comp1 <= (int) comp2;
+                    case DECIMAL  -> (int) comp1 <= (double) comp2;
+                    case CARACTER -> (int) comp1 <= (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            case DECIMAL ->
+                switch (comparando2) {
+                    case ENTERO   -> (double) comp1 <= (int) comp2;
+                    case DECIMAL  -> (double) comp1 <= (double) comp2;
+                    case CARACTER -> (double) comp1 <= (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            case CARACTER ->
+                switch (comparando2) {
+                    case ENTERO   -> (int) ((Character) comp1) <= (int) comp2;
+                    case DECIMAL  -> (int) ((Character) comp1) <= (double) comp2;
+                    case CARACTER -> (int) ((Character) comp1) <= (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            default ->
+                new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+        };
+    }
+
+    public Object mayorIgual(Object comp1, Object comp2) {
+        var comparando1 = this.cond1.tipo.getTipo();
+        var comparando2 = this.cond2.tipo.getTipo();
+
+        return switch (comparando1) {
+            case ENTERO ->
+                switch (comparando2) {
+                    case ENTERO   -> (int) comp1 >= (int) comp2;
+                    case DECIMAL  -> (int) comp1 >= (double) comp2;
+                    case CARACTER -> (int) comp1 >= (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            case DECIMAL ->
+                switch (comparando2) {
+                    case ENTERO   -> (double) comp1 >= (int) comp2;
+                    case DECIMAL  -> (double) comp1 >= (double) comp2;
+                    case CARACTER -> (double) comp1 >= (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            case CARACTER ->
+                switch (comparando2) {
+                    case ENTERO   -> (int) ((Character) comp1) >= (int) comp2;
+                    case DECIMAL  -> (int) ((Character) comp1) >= (double) comp2;
+                    case CARACTER -> (int) ((Character) comp1) >= (int) ((Character) comp2);
+                    default       -> new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+                };
+            default ->
+                new Errores("SEMANTICO", "Relacional invalido", this.linea, this.col);
+        };
+    }
+    
+    
 }

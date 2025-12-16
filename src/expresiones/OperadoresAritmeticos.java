@@ -6,5 +6,5 @@ public enum OperadoresAritmeticos {
     MULTIPLICACION,
     DIVISION,
     MODULO, 
-    NEGACION
+    NEGACION, POTENCIA
 }
