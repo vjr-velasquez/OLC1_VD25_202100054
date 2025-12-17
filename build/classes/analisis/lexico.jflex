@@ -96,10 +96,12 @@ WHILE  = "while"
 FOR    = "for"
 BREAK  = "break"
 CONTINUE = "continue"
+DO     = "do"
 
 SWITCH  = "switch"
 CASE    = "case"
 DEFAULT = "default"
+
 
 
 %%
@@ -124,6 +126,7 @@ DEFAULT = "default"
 <YYINITIAL> {FOR}     { agregarToken("FOR");     return new Symbol(sym._for,    yyline, yycolumn, yytext()); }
 <YYINITIAL> {BREAK}   { agregarToken("BREAK");   return new Symbol(sym._break,  yyline, yycolumn, yytext()); }
 <YYINITIAL> {CONTINUE} { agregarToken("CONTINUE"); return new Symbol(sym._continue, yyline, yycolumn, yytext()); }
+<YYINITIAL> {DO}      { agregarToken("DO");      return new Symbol(sym.DO,      yyline, yycolumn, yytext()); }
 <YYINITIAL> {SWITCH}  { agregarToken("SWITCH");  return new Symbol(sym.SWITCH,  yyline, yycolumn, yytext()); }
 <YYINITIAL> {CASE}    { agregarToken("CASE");    return new Symbol(sym.CASE,    yyline, yycolumn, yytext()); }
 <YYINITIAL> {DEFAULT} { agregarToken("DEFAULT"); return new Symbol(sym.DEFAULT, yyline, yycolumn, yytext()); }

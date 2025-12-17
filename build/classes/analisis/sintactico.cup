@@ -29,6 +29,8 @@ import instrucciones.Break;
 import instrucciones.Continue;
 import instrucciones.Switch;
 import instrucciones.CaseSwitch;
+import instrucciones.DoWhile;
+
 
 import excepciones.Errores;
 import excepciones.ControlErrores;
@@ -74,6 +76,7 @@ terminal TRUE, FALSE, BOOL;
 terminal IF, ELSE, LLAVEIZQ, LLAVEDER;
 terminal SWITCH, CASE, DEFAULT;
 terminal _while, _for, _break, _continue;
+terminal DO;
 
 
 terminal POR, DIV, MOD, POT;
@@ -95,6 +98,8 @@ nonterminal Instruccion SSWITCH;
 nonterminal LinkedList<CaseSwitch> LCASES;
 nonterminal CaseSwitch CASEITEM;
 nonterminal LinkedList<Instruccion> DFLT_OPT;
+
+nonterminal Instruccion SDO;
 
 
 // ========== PRECEDENCIAS ==========
@@ -142,7 +147,18 @@ INSTRUCCION ::=
     | SFOR:a         {: RESULT = a; :}
     | STRANS:a       {: RESULT = a; :}
     | SSWITCH:a      {: RESULT = a; :}
+    | SDO:a          {: RESULT = a; :}
 ;
+
+SDO ::=
+    DO
+    LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
+    _while PAR1 EXPRESION:cond PAR2 FINCADENA
+    {:
+        RESULT = new DoWhile(cond, lista, condleft, condright);
+    :}
+;
+
 
 // ---------- SWITCH / CASE / DEFAULT ----------
 

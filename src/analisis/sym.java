@@ -11,30 +11,30 @@ public class sym {
   public static final int PAR2 = 14;
   public static final int DOSPUNTOS = 18;
   public static final int PAR1 = 13;
-  public static final int POT = 38;
-  public static final int POR = 35;
+  public static final int POT = 39;
+  public static final int POR = 36;
   public static final int CHAR = 10;
   public static final int EQUALS = 20;
-  public static final int MENORQ = 39;
+  public static final int MENORQ = 40;
   public static final int ENTERO = 3;
-  public static final int XOR = 46;
-  public static final int DIFERENTE = 43;
+  public static final int XOR = 47;
+  public static final int DIFERENTE = 44;
   public static final int CASE = 29;
   public static final int DOUBLE = 7;
   public static final int LLAVEDER = 27;
   public static final int INT = 6;
-  public static final int NOT = 47;
-  public static final int AND = 44;
-  public static final int MENORIGUAL = 41;
+  public static final int NOT = 48;
+  public static final int AND = 45;
+  public static final int MENORIGUAL = 42;
   public static final int FINCADENA = 11;
   public static final int IGUAL = 19;
-  public static final int OR = 45;
+  public static final int OR = 46;
   public static final int BOOL = 23;
-  public static final int DIV = 36;
+  public static final int DIV = 37;
   public static final int UMENOS = 17;
   public static final int IF = 24;
   public static final int ID = 5;
-  public static final int MAYORIGUAL = 42;
+  public static final int MAYORIGUAL = 43;
   public static final int EOF = 0;
   public static final int DECIMAL = 4;
   public static final int TRUE = 21;
@@ -42,18 +42,19 @@ public class sym {
   public static final int _break = 33;
   public static final int CADENA = 2;
   public static final int MENOS = 16;
-  public static final int MOD = 37;
+  public static final int MOD = 38;
   public static final int _continue = 34;
   public static final int SWITCH = 28;
   public static final int _while = 31;
   public static final int ELSE = 25;
-  public static final int MAYORQ = 40;
+  public static final int MAYORQ = 41;
   public static final int _for = 32;
   public static final int LLAVEIZQ = 26;
   public static final int DEFAULT = 30;
   public static final int STRING = 8;
   public static final int FALSE = 22;
   public static final int VAR = 9;
+  public static final int DO = 35;
   public static final int PRINT = 12;
   public static final int MAS = 15;
   public static final String[] terminalNames = new String[] {
@@ -92,6 +93,7 @@ public class sym {
   "_for",
   "_break",
   "_continue",
+  "DO",
   "POR",
   "DIV",
   "MOD",

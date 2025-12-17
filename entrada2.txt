@@ -2,7 +2,7 @@ print("----------- SWITCH -----------");
 
 var opcion: int = 1;
 
-while (opcion <= 4) {
+do {
 
     switch(opcion) {
 
@@ -36,7 +36,6 @@ while (opcion <= 4) {
             var x: int = 0;
 
             for (x = 1; x <= 10; x = x + 1) {
-
                 if (x % 2 == 0) {
                     suma = suma + x;
                 }
@@ -53,6 +52,7 @@ while (opcion <= 4) {
 
     opcion = opcion + 1;
     print("");
-}
+
+} while (opcion <= 4);
 
 print("Fin del archivo de prueba.");
