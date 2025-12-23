@@ -17,6 +17,8 @@ import expresiones.OperadoresRelacionales;
 import expresiones.Logicas;
 import expresiones.OperadoresLogicos;
 import expresiones.AccesoVar;
+import expresiones.VectorLiteral;
+import expresiones.AccesoVector;
 
 // instrucciones
 import instrucciones.Print;
@@ -30,7 +32,7 @@ import instrucciones.Continue;
 import instrucciones.Switch;
 import instrucciones.CaseSwitch;
 import instrucciones.DoWhile;
-
+import instrucciones.AsignacionVector;
 
 import excepciones.Errores;
 import excepciones.ControlErrores;
@@ -38,7 +40,6 @@ import excepciones.ControlErrores;
 
 parser code
 {:
-
     public parser(scanner s){
         super(s);
     }
@@ -71,12 +72,13 @@ terminal Character CHAR;
 
 // sin valor
 terminal FINCADENA, PRINT, PAR1, PAR2, MAS, MENOS, UMENOS, DOSPUNTOS;
+terminal CORCHIZQ, CORCHDER, COMA;
 terminal IGUAL, EQUALS;
 terminal TRUE, FALSE, BOOL;
 terminal IF, ELSE, LLAVEIZQ, LLAVEDER;
 terminal SWITCH, CASE, DEFAULT;
 terminal _while, _for, _break, _continue;
-terminal DO;
+terminal DO;    
 
 
 terminal POR, DIV, MOD, POT;
@@ -100,6 +102,11 @@ nonterminal CaseSwitch CASEITEM;
 nonterminal LinkedList<Instruccion> DFLT_OPT;
 
 nonterminal Instruccion SDO;
+
+// vectores
+nonterminal LinkedList<Instruccion> LISTA_EXP;
+nonterminal Instruccion VECTOR_LIT;
+
 
 
 // ========== PRECEDENCIAS ==========
@@ -131,9 +138,9 @@ INICIO ::= INSTRUCCIONES:a   {: RESULT = a; :}
 
 INSTRUCCIONES ::=
       INSTRUCCIONES:a INSTRUCCION:b
-        {: RESULT = a; RESULT.add(b); :}
+        {: if (b != null) { a.add(b); } RESULT = a; :}
     | INSTRUCCION:a
-        {: RESULT = new LinkedList<>(); RESULT.add(a); :}
+        {: RESULT = new LinkedList<>(); if (a != null) RESULT.add(a); :}
 ;
 
 // Instrucciones de alto nivel
@@ -148,6 +155,14 @@ INSTRUCCION ::=
     | STRANS:a       {: RESULT = a; :}
     | SSWITCH:a      {: RESULT = a; :}
     | SDO:a          {: RESULT = a; :}
+
+    // asignación a vector: id[exp] = exp;
+    | ID:a CORCHIZQ EXPRESION:i CORCHDER IGUAL EXPRESION:v FINCADENA
+        {: RESULT = new AsignacionVector(a, i, v, aleft, aright); :}
+
+    // recuperación (para que no te mate el parse)
+    | error FINCADENA {: RESULT = null; :}
+    | error          {: RESULT = null; :}
 ;
 
 SDO ::=
@@ -203,8 +218,6 @@ DFLT_OPT ::=
 ;
 
 
-
-
 // ---------- WHILE ----------
 
 SWHILE ::=
@@ -214,9 +227,10 @@ SWHILE ::=
     :}
 ;
 
+
 // ---------- FOR ----------
 
-ASIG_FOR ::= 
+ASIG_FOR ::=
     ID:a IGUAL EXPRESION:b
     {:
         RESULT = new AsignacionVar(a, b, aleft, aright);
@@ -233,6 +247,7 @@ SFOR ::=
     :}
 ;
 
+
 // ---------- break / continue ----------
 
 STRANS ::=
@@ -246,6 +261,7 @@ STRANS ::=
         :}
 ;
 
+
 // ---------- IF / ELSE ----------
 
 SIF ::=
@@ -256,21 +272,24 @@ SIF ::=
         {: RESULT = new If(cond, lista, listaElse, condleft, condright); :}
 ;
 
+
 // ---------- Declaración de variables ----------
 
-DECLARACION ::= 
+DECLARACION ::=
       VAR ID:b DOSPUNTOS TIPOS:a IGUAL EXPRESION:c FINCADENA
         {: RESULT = new Declaracion(b, c, a, aleft, aright); :}
     | VAR ID:b DOSPUNTOS TIPOS:a FINCADENA
         {: RESULT = new Declaracion(b, null, a, bleft, bright); :}
 ;
 
+
 // ---------- Asignación de variables ----------
 
-ASIGNACION ::= 
+ASIGNACION ::=
     ID:a IGUAL EXPRESION:b FINCADENA
         {: RESULT = new AsignacionVar(a, b, aleft, aright); :}
 ;
+
 
 // ---------- Tipos ----------
 
@@ -279,7 +298,37 @@ TIPOS ::=
     | DOUBLE {: RESULT = new Tipo(tipoDato.DECIMAL);  :}
     | STRING {: RESULT = new Tipo(tipoDato.CADENA);   :}
     | BOOL   {: RESULT = new Tipo(tipoDato.BOOLEANO); :}
+
+    // vectores: tipo[]
+    | INT    CORCHIZQ CORCHDER {: RESULT = new Tipo(tipoDato.ENTERO, 1);   :}
+    | DOUBLE CORCHIZQ CORCHDER {: RESULT = new Tipo(tipoDato.DECIMAL, 1);  :}
+    | STRING CORCHIZQ CORCHDER {: RESULT = new Tipo(tipoDato.CADENA, 1);   :}
+    | BOOL   CORCHIZQ CORCHDER {: RESULT = new Tipo(tipoDato.BOOLEANO, 1); :}
 ;
+
+
+// ---------- Literales de vector ----------
+
+VECTOR_LIT ::=
+      CORCHIZQ:ci CORCHDER:cd
+        {:
+            RESULT = new VectorLiteral(new LinkedList<Instruccion>(), cileft, cdright);
+        :}
+    | CORCHIZQ:ci LISTA_EXP:lst CORCHDER:cd
+        {:
+            RESULT = new VectorLiteral(lst, cileft, cdright);
+        :}
+;
+
+
+
+LISTA_EXP ::=
+      LISTA_EXP:ls COMA EXPRESION:e
+        {: ls.add(e); RESULT = ls; :}
+    | EXPRESION:e
+        {: RESULT = new LinkedList<Instruccion>(); RESULT.add(e); :}
+;
+
 
 // ========== EXPRESIONES ==========
 
@@ -346,6 +395,10 @@ EXPRESION ::=
     | PAR1 EXPRESION:a PAR2
         {: RESULT = a; :}
 
+    // vector literal: [] o [a,b,c]
+    | VECTOR_LIT:vec
+        {: RESULT = vec; :}
+
     | ENTERO:a
         {: RESULT = new Nativo(Integer.parseInt(a), new Tipo(tipoDato.ENTERO), aleft, aright); :}
 
@@ -366,4 +419,8 @@ EXPRESION ::=
 
     | ID:a
         {: RESULT = new AccesoVar(a, aleft, aright); :}
+
+    // acceso vector: id[exp]
+    | ID:a CORCHIZQ EXPRESION:i CORCHDER
+        {: RESULT = new AccesoVector(a, i, aleft, aright); :}
 ;

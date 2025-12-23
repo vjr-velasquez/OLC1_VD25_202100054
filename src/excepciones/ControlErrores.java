@@ -75,12 +75,17 @@ public class ControlErrores {
             System.out.println("❌ Error al generar reporte de errores: " + ex.getMessage());
         }
     }
-
+    
     private static String escapeHtml(String txt) {
         if (txt == null) return "";
         return txt
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
-                .replace(">", "&gt;");
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;")
+                .replace("\n", "<br>")
+                .replace("\r", "");
     }
+
 }

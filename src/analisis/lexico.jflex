@@ -4,7 +4,6 @@ import java_cup.runtime.Symbol;
 import excepciones.ControlErrores;
 import excepciones.Errores;
 import java.util.LinkedList;
-import java_cup.runtime.Symbol;
 
 %%
 
@@ -16,6 +15,32 @@ import java_cup.runtime.Symbol;
     private void agregarToken(String tipo) {
         listaTokens.add(new Token(tipo, yytext(), yyline, yycolumn));
     }
+
+        private String unescape(String s) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\\' && i + 1 < s.length()) {
+                char n = s.charAt(i + 1);
+                switch (n) {
+                    case 'n': out.append('\n'); i++; break;
+                    case 't': out.append('\t'); i++; break;
+                    case 'r': out.append('\r'); i++; break;
+                    case '\\': out.append('\\'); i++; break;
+                    case '"': out.append('\"'); i++; break;
+                    case '\'': out.append('\''); i++; break;
+                    default:
+                        // si no es escape válido, deja el '\'
+                        out.append(c);
+                        break;
+                }
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
+    }
+
 
 %}
 
@@ -40,6 +65,9 @@ import java_cup.runtime.Symbol;
 // símbolos simples
 PAR1       = "("
 PAR2       = ")"
+CORCHIZQ   = "["
+CORCHDER   = "]"
+COMA       = ","
 MAS        = "+"
 MENOS      = "-"
 IGUAL      = "="
@@ -67,6 +95,8 @@ MAYORQ     = ">"
 
 FINCADENA  = ";"
 
+
+
 // espacios y comentarios
 BLANCOS      = [\ \r\t\f\n]+
 COMENT_LINEA = "//".*
@@ -75,8 +105,9 @@ DOSPUNTOS    = ":"
 // literales
 ENTERO   = [0-9]+
 DECIMAL  = [0-9]+"."[0-9]+
-CHAR     = \'([^\'\\]|\\.)\'        
-CADENA   = \"([^\"\\]|\\.)*\"          
+CHAR   = \'(\\[nrt\'\"\\]|[^\\\'\n\r])\'
+CADENA = \"([^\"\n\r\\]|\\[nrt\"\'\\])*\"
+         
 
 ID       = [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -142,22 +173,31 @@ DEFAULT = "default"
 <YYINITIAL> {ENTERO}  { agregarToken("ENTERO");  return new Symbol(sym.ENTERO,  yyline, yycolumn, yytext()); }
 
 <YYINITIAL> {CHAR} {
-    String texto = yytext();
-    char contenido = texto.charAt(1);
+    String raw = yytext(); // incluye comillas simples
+    String contenido = raw.substring(1, raw.length() - 1); // sin ' '
+    String val = unescape(contenido);
+
     agregarToken("CHAR");
-    return new Symbol(sym.CHAR, yyline, yycolumn, contenido);
+    return new Symbol(sym.CHAR, yyline, yycolumn, val.charAt(0));
 }
 
+
 <YYINITIAL> {CADENA} {
-    String cadena = yytext();
-    cadena = cadena.substring(1, cadena.length() - 1);
+    String raw = yytext(); // incluye comillas dobles
+    String contenido = raw.substring(1, raw.length() - 1); // sin " "
+    String val = unescape(contenido);
+
     agregarToken("CADENA");
-    return new Symbol(sym.CADENA, yyline, yycolumn, cadena);
+    return new Symbol(sym.CADENA, yyline, yycolumn, val);
 }
+
 
 // símbolos de agrupación y fin de sentencia
 <YYINITIAL> {PAR1}      { agregarToken("PAR1");      return new Symbol(sym.PAR1,      yyline, yycolumn, yytext()); }
 <YYINITIAL> {PAR2}      { agregarToken("PAR2");      return new Symbol(sym.PAR2,      yyline, yycolumn, yytext()); }
+<YYINITIAL> {CORCHIZQ}  { agregarToken("CORCHIZQ");  return new Symbol(sym.CORCHIZQ,  yyline, yycolumn, yytext()); }
+<YYINITIAL> {CORCHDER}  { agregarToken("CORCHDER");  return new Symbol(sym.CORCHDER,  yyline, yycolumn, yytext()); }
+<YYINITIAL> {COMA}      { agregarToken("COMA");      return new Symbol(sym.COMA,      yyline, yycolumn, yytext()); }
 <YYINITIAL> {FINCADENA} { agregarToken("FINCADENA"); return new Symbol(sym.FINCADENA, yyline, yycolumn, yytext()); }
 <YYINITIAL> {DOSPUNTOS} { agregarToken("DOSPUNTOS"); return new Symbol(sym.DOSPUNTOS, yyline, yycolumn, yytext()); }
 <YYINITIAL> {IGUAL}     { agregarToken("IGUAL");     return new Symbol(sym.IGUAL,     yyline, yycolumn, yytext()); }

@@ -1,7 +1,8 @@
-
 package instrucciones;
+
 import Simbolo.Arbol;
 import Simbolo.Tipo;
+import Simbolo.NodoAST;
 import Simbolo.tablaSimbolos;
 import Simbolo.tipoDato;
 import abstracto.Instruccion;
@@ -16,6 +17,8 @@ public class AsignacionVar extends Instruccion{
         this.id = id;
         this.valor = valor;
     }
+
+    @Override
     public Object interpretar(Arbol arbol, tablaSimbolos tabla){
         var variable = tabla.getVariable(id);
         if (variable == null){
@@ -27,9 +30,25 @@ public class AsignacionVar extends Instruccion{
         }
         if(variable.getTipo().getTipo() != this.valor.tipo.getTipo()){
             return new Errores("semantico", "Tipos erroneos", this.linea, this.col);
-            
         }
         variable.setValor(newValor);
         return null;
+    }
+
+    @Override
+    public NodoAST getNodoAST() {
+        NodoAST nodo = new NodoAST("ASIGNACION");
+
+        // ID
+        nodo.agregarHijo(new NodoAST("ID: " + this.id));
+
+        // EXPRESION
+        NodoAST exp = new NodoAST("EXPRESION");
+        if (this.valor != null) {
+            exp.agregarHijo(this.valor.getNodoAST());
+        }
+        nodo.agregarHijo(exp);
+
+        return nodo;
     }
 }

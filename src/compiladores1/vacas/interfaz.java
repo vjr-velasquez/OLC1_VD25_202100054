@@ -4,6 +4,10 @@
  */
 package compiladores1.vacas;
 
+import analisis.Token;
+import analisis.scanner;
+import excepciones.ControlErrores;
+
 /**
  *
  * @author velas
@@ -56,14 +60,14 @@ public class interfaz extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 564, Short.MAX_VALUE)
+                .addComponent(jScrollPane1)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -77,12 +81,14 @@ public class interfaz extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 573, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 657, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 369, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         jLabel1.setText("Consola");
@@ -106,6 +112,11 @@ public class interfaz extends javax.swing.JFrame {
         jMenu1.add(jMenuItem2);
 
         jMenuItem3.setText("Guardar Archivo");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem3);
 
         jMenuBar1.add(jMenu1);
@@ -113,9 +124,19 @@ public class interfaz extends javax.swing.JFrame {
         jMenu2.setText("Reportes");
 
         jMenuItem4.setText("Reporte de Tokens");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem4);
 
         jMenuItem5.setText("Reporte de Errores");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem5ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem5);
 
         jMenuBar1.add(jMenu2);
@@ -123,6 +144,11 @@ public class interfaz extends javax.swing.JFrame {
         jMenu3.setText("Ejecutar");
 
         jMenuItem6.setText("Ejecutar");
+        jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem6ActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuItem6);
 
         jMenuBar1.add(jMenu3);
@@ -134,66 +160,338 @@ public class interfaz extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGap(15, 15, 15)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(27, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(31, 31, 31)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(16, 16, 16)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap(39, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(30, 30, 30)
+                .addGap(24, 24, 24)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel1)
                 .addGap(8, 8, 8)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(37, Short.MAX_VALUE))
+                .addContainerGap(18, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-                javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
-        chooser.setDialogTitle("Crear nuevo archivo .atm");
+        // jTextArea1 = editor de código
+        // jTextArea2 = consola / salida
 
-        // Filtro para que sugiera extensión .atm
-        javax.swing.filechooser.FileNameExtensionFilter filter =
-                new javax.swing.filechooser.FileNameExtensionFilter("Archivos ATM (*.atm)", "atm");
-        chooser.setFileFilter(filter);
+        // 1. Si hay texto en el editor, preguntamos antes de borrar
+        if (!jTextArea1.getText().isEmpty()) {
+            int opcion = javax.swing.JOptionPane.showConfirmDialog(
+                    this,
+                    "¿Deseas limpiar el contenido actual?\n" +
+                    "Si no has guardado, se perderán los cambios.",
+                    "Nuevo archivo",
+                    javax.swing.JOptionPane.YES_NO_OPTION,
+                    javax.swing.JOptionPane.WARNING_MESSAGE
+            );
 
-        int result = chooser.showSaveDialog(this);
-        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
-            java.io.File file = chooser.getSelectedFile();
-
-            // Asegurarse de que tenga extensión .atm
-            if (!file.getName().toLowerCase().endsWith(".atm")) {
-                file = new java.io.File(file.getParentFile(), file.getName() + ".atm");
-            }
-
-            try {
-                // Crear archivo vacío
-                if (file.createNewFile()) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Archivo creado: " + file.getAbsolutePath());
-                    jTextArea1.setText(""); // limpiar área de entrada
-                    this.setTitle("Editor - " + file.getName()); // opcional: cambiar título ventana
-                } else {
-                    javax.swing.JOptionPane.showMessageDialog(this, "El archivo ya existe.");
-                }
-            } catch (Exception e) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Error al crear archivo: " + e.getMessage());
+            if (opcion != javax.swing.JOptionPane.YES_OPTION) {
+                return; // el usuario canceló
             }
         }
+
+        // 2. Limpiar área de edición
+        jTextArea1.setText("");
+
+        // 3. Limpiar consola
+        jTextArea2.setText("");
+
+        // (Opcional) cambiar el título de la ventana
+        // this.setTitle("Interprete - Nuevo archivo");
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        
+                // Abrir archivo desde el sistema y cargarlo en jTextArea1
+        javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+
+        // Opcional: filtro de tipos de archivo
+        javax.swing.filechooser.FileNameExtensionFilter filtro =
+                new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Archivos de texto / código", "txt", "olc", "olc1", "comp", "cs");
+        chooser.setFileFilter(filtro);
+
+        int opcion = chooser.showOpenDialog(this);
+
+        if (opcion == javax.swing.JFileChooser.APPROVE_OPTION) {
+            java.io.File archivo = chooser.getSelectedFile();
+            try {
+                // Leer todo el archivo como texto (UTF-8)
+                String contenido = java.nio.file.Files.readString(
+                        archivo.toPath(),
+                        java.nio.charset.StandardCharsets.UTF_8
+                );
+
+                // Cargar en el editor
+                jTextArea1.setText(contenido);
+                jTextArea1.setCaretPosition(0); // subir al inicio
+
+                // Mensaje en la consola
+                jTextArea2.setText("Archivo cargado: " + archivo.getAbsolutePath());
+
+                // Opcional: cambiar título de la ventana
+                // this.setTitle("Interprete - " + archivo.getName());
+
+            } catch (Exception e) {
+                javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "No se pudo abrir el archivo:\n" + e.getMessage(),
+                        "Error al abrir",
+                        javax.swing.JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
+        try {
+            // 1. Limpiar salida y errores
+            jTextArea2.setText("");
+            analisis.scanner.listaTokens.clear();
+            excepciones.ControlErrores.limpiar();
+
+            // 2. Texto de entrada
+            String entrada = jTextArea1.getText();
+            java.io.StringReader sr = new java.io.StringReader(entrada);
+
+            // 3. Scanner y parser
+            analisis.scanner s = new analisis.scanner(sr);
+            analisis.parser p = new analisis.parser(s);
+
+            jTextArea2.append(">>> INICIANDO PARSEO\n");
+
+            Object resultado = p.parse().value;
+            if (!(resultado instanceof java.util.LinkedList)) {
+                jTextArea2.append("❌ No se pudo construir la lista de instrucciones (parse con errores).\n");
+                // Aún así generá reportes
+                Token.generarReporteHTML(scanner.listaTokens);
+                ControlErrores.generarReporteHTML();
+                return;
+            }
+
+            @SuppressWarnings("unchecked")
+            java.util.LinkedList<abstracto.Instruccion> instrucciones =
+                    (java.util.LinkedList<abstracto.Instruccion>) resultado;
+
+            jTextArea2.append(">>> PARSEO TERMINADO\n");
+            jTextArea2.append("? Análisis sintáctico finalizado.\n");
+            jTextArea2.append("Se generaron " + instrucciones.size() + " instrucciones.\n");
+
+            // 4. Crear árbol y tabla global
+            Simbolo.Arbol arbol = new Simbolo.Arbol(instrucciones);
+            Simbolo.tablaSimbolos global = arbol.getTablaGlobal();
+
+            // 5. Interpretar instrucciones
+            for (abstracto.Instruccion ins : instrucciones) {
+                Object res = ins.interpretar(arbol, global);
+                if (res instanceof excepciones.Errores err) {
+                    // imprimir
+                    jTextArea2.append(err.toString() + "\n");
+
+                    // ✅ guardar en reporte
+                    excepciones.ControlErrores.agregarError(err);
+
+                    // ✅ opcional: también al árbol
+                    arbol.addError(err);
+                }
+            }
+
+
+            // 6. Mostrar salida del programa
+            jTextArea2.append("---- SALIDA DEL PROGRAMA ----\n");
+            jTextArea2.append(arbol.getConsolas() + "\n");
+
+            // 7. Generar AST DOT
+            String basePath = System.getProperty("user.dir");
+            String dotPath = basePath + java.io.File.separator + "ast.dot";
+            String pngPath = basePath + java.io.File.separator + "ast.png";
+
+            try (java.io.PrintWriter pw = new java.io.PrintWriter(dotPath)) {
+                pw.println(arbol.generarDotAST());
+            }
+            jTextArea2.append("AST en formato DOT generado en: " + dotPath + "\n");
+
+            // 8. Generar AST PNG con Graphviz
+            try {
+                ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng", dotPath, "-o", pngPath);
+                pb.redirectErrorStream(true);
+                Process pDot = pb.start();
+
+                String salida = new String(
+                        pDot.getInputStream().readAllBytes(),
+                        java.nio.charset.StandardCharsets.UTF_8
+                );
+
+                int code = pDot.waitFor();
+
+                if (code == 0) {
+                    jTextArea2.append("✅ AST en PNG generado en: " + pngPath + "\n");
+                    // Abrir automáticamente el PNG (opcional)
+                    java.awt.Desktop.getDesktop().open(new java.io.File(pngPath));
+                } else {
+                    jTextArea2.append("❌ Error al generar PNG (Graphviz)\n");
+                    jTextArea2.append(salida + "\n");
+                }
+            } catch (Exception ex) {
+                jTextArea2.append("❌ No se pudo generar el PNG.\n");
+                jTextArea2.append("¿Graphviz instalado y 'dot' en el PATH?\n");
+                jTextArea2.append("Detalle: " + ex.getMessage() + "\n");
+            }
+
+            // 9. Generar reportes HTML
+            String rutaTokens  = basePath + java.io.File.separator + "reporte_tokens.html";
+            String rutaErrores = basePath + java.io.File.separator + "reporte_errores.html";
+
+            Token.generarReporteHTML(scanner.listaTokens);
+            ControlErrores.generarReporteHTML();
+
+            jTextArea2.append("? Reporte de tokens generado: " + rutaTokens + "\n");
+            jTextArea2.append("? Reporte de errores generado: " + rutaErrores + "\n");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            jTextArea2.append("\n❌ Error al ejecutar: " + e.getMessage() + "\n");
+        }
+    }//GEN-LAST:event_jMenuItem6ActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        try {
+        // Archivo HTML que genera tu analizador
+        java.io.File html = new java.io.File("reporte_tokens.html");
+
+        // Verificar que exista
+        if (!html.exists()) {
+            javax.swing.JOptionPane.showMessageDialog(
+                this,
+                "Aún no se ha generado el archivo reporte_tokens.html.\n" +
+                "Primero ejecuta el análisis.",
+                "Archivo no encontrado",
+                javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        // Abrir en el navegador por defecto
+        if (java.awt.Desktop.isDesktopSupported()) {
+            java.awt.Desktop.getDesktop().browse(html.toURI());
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(
+                this,
+                "El sistema no soporta abrir el navegador automáticamente.",
+                "Error",
+                javax.swing.JOptionPane.ERROR_MESSAGE
+            );
+        }
+    } catch (Exception ex) {
+        javax.swing.JOptionPane.showMessageDialog(
+            this,
+            "Error al abrir el reporte: " + ex.getMessage(),
+            "Error",
+            javax.swing.JOptionPane.ERROR_MESSAGE
+        );
+        ex.printStackTrace();
+    }
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+            try {
+            // Archivo HTML de errores que genera tu analizador
+            java.io.File html = new java.io.File("reporte_errores.html");
+
+            // Verificar que exista
+            if (!html.exists()) {
+                javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "Aún no se ha generado el archivo reporte_errores.html.\n" +
+                    "Primero ejecuta el análisis.",
+                    "Archivo no encontrado",
+                    javax.swing.JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            // Abrir en el navegador por defecto
+            if (java.awt.Desktop.isDesktopSupported()) {
+                java.awt.Desktop.getDesktop().browse(html.toURI());
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "El sistema no soporta abrir el navegador automáticamente.",
+                    "Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE
+                );
+            }
+        } catch (Exception ex) {
+            javax.swing.JOptionPane.showMessageDialog(
+                this,
+                "Error al abrir el reporte de errores: " + ex.getMessage(),
+                "Error",
+                javax.swing.JOptionPane.ERROR_MESSAGE
+            );
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+            // Guardar el contenido de jTextArea1 en un archivo
+        javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+
+        // Opcional: filtro de tipos de archivo
+        javax.swing.filechooser.FileNameExtensionFilter filtro =
+                new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Archivos de texto / código", "txt", "olc", "olc1", "comp", "cs");
+        chooser.setFileFilter(filtro);
+
+        int opcion = chooser.showSaveDialog(this);
+
+        if (opcion == javax.swing.JFileChooser.APPROVE_OPTION) {
+            java.io.File archivo = chooser.getSelectedFile();
+
+            // Opcional: si no tiene extensión, le agregamos .txt
+            if (!archivo.getName().contains(".")) {
+                archivo = new java.io.File(archivo.getAbsolutePath() + ".txt");
+            }
+
+            try {
+                String contenido = jTextArea1.getText();
+
+                java.nio.file.Files.writeString(
+                        archivo.toPath(),
+                        contenido,
+                        java.nio.charset.StandardCharsets.UTF_8
+                );
+
+                // Mensaje en la "consola" (jTextArea2)
+                jTextArea2.setText("Archivo guardado: " + archivo.getAbsolutePath());
+
+                // Opcional: popup de confirmación
+                // javax.swing.JOptionPane.showMessageDialog(this, "Archivo guardado correctamente.");
+
+            } catch (Exception e) {
+                javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "No se pudo guardar el archivo:\n" + e.getMessage(),
+                        "Error al guardar",
+                        javax.swing.JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     /**
      * @param args the command line arguments

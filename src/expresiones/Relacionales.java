@@ -53,42 +53,75 @@ public class Relacionales extends Instruccion {
         var comparando2 = this.cond2.tipo.getTipo();
 
         return switch (comparando1) {
+
             case ENTERO ->
                 switch (comparando2) {
                     case ENTERO ->
-                        (int) comp1 == (int) comp2;
+                        ((Integer) comp1).intValue() == ((Integer) comp2).intValue();
+
                     case DECIMAL ->
-                        (int) comp1 == (double) comp2;
+                        ((Integer) comp1).intValue() == ((Double) comp2).doubleValue();
+
+                    case CARACTER ->
+                        ((Integer) comp1).intValue() == ((Character) comp2).charValue();
+
                     default ->
                         new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
                 };
+
             case DECIMAL ->
                 switch (comparando2) {
                     case ENTERO ->
-                        (double) comp1 == (int) comp2;
+                        ((Double) comp1).doubleValue() == ((Integer) comp2).intValue();
+
                     case DECIMAL ->
-                        (double) comp1 == (double) comp2;
+                        ((Double) comp1).doubleValue() == ((Double) comp2).doubleValue();
+
+                    case CARACTER ->
+                        ((Double) comp1).doubleValue() == ((Character) comp2).charValue();
+
                     default ->
                         new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
                 };
+
+            case CARACTER ->
+                switch (comparando2) {
+                    case CARACTER ->
+                        ((Character) comp1).charValue() == ((Character) comp2).charValue();
+
+                    case ENTERO ->
+                        ((Character) comp1).charValue() == ((Integer) comp2).intValue();
+
+                    case DECIMAL ->
+                        ((Character) comp1).charValue() == ((Double) comp2).doubleValue();
+
+                    default ->
+                        new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
+                };
+
             case CADENA ->
                 switch (comparando2) {
                     case CADENA ->
                         comp1.toString().equalsIgnoreCase(comp2.toString());
+
                     default ->
                         new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
                 };
+
             case BOOLEANO ->
                 switch (comparando2) {
                     case BOOLEANO ->
-                        (boolean) comp1 == (boolean) comp2;
+                        ((Boolean) comp1).booleanValue() == ((Boolean) comp2).booleanValue();
+
                     default ->
                         new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
                 };
+
             default ->
                 new Errores("SEMANTICO", "Relacional Invalido", this.linea, this.col);
         };
     }
+
 
     
     public Object diferente(Object comp1, Object comp2) {

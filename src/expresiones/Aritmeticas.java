@@ -57,6 +57,8 @@ public class Aritmeticas extends Instruccion {
                 this.division(opIzq, opDer);
             case MODULO ->
                 this.modulo(opIzq, opDer);
+            case POTENCIA ->
+                this.potencia(opIzq,opDer);
             case NEGACION ->
                 this.negacion(Unico);
             default -> 
@@ -647,23 +649,6 @@ public class Aritmeticas extends Instruccion {
         }
     }
 
-
-
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     public Object negacion(Object op1){
             var opU = this.operandoUnico.tipo.getTipo();

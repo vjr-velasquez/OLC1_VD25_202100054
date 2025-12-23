@@ -1,17 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package expresiones;
 
 import Simbolo.Tipo;
+import Simbolo.NodoAST;
 import abstracto.Instruccion;
 import Simbolo.Arbol;
 import Simbolo.tablaSimbolos;
-/**
- *
- * @author Lesther
- */
+
 public class Nativo extends Instruccion {
     public Object valor;
 
@@ -19,10 +13,19 @@ public class Nativo extends Instruccion {
         super(tipo, linea, col);
         this.valor = valor;
     }
-    
+
     @Override
     public Object interpretar(Arbol arbol, tablaSimbolos tabla){
         return this.valor;
     }
-    
+
+    @Override
+    public NodoAST getNodoAST() {
+        NodoAST nodo = new NodoAST("NATIVO");
+        if (this.tipo != null) {
+            nodo.agregarHijo(new NodoAST("TIPO: " + this.tipo.getTipo()));
+        }
+        nodo.agregarHijo(new NodoAST("VALOR: " + String.valueOf(this.valor)));
+        return nodo;
+    }
 }
