@@ -22,7 +22,6 @@ public class MainPrueba {
 
             // 1. Leer el archivo de entrada
             FileReader fr = new FileReader("entrada2.txt");
-            // Cambia el nombre si quieres probar otro archivo, por ejemplo:
             // FileReader fr = new FileReader("prueba_switch.txt");
 
             // 2. Crear scanner y parser
@@ -40,8 +39,7 @@ public class MainPrueba {
 
             if (resultadoParseo != null && resultadoParseo.value != null) {
                 @SuppressWarnings("unchecked")
-                LinkedList<Instruccion> tmp =
-                        (LinkedList<Instruccion>) resultadoParseo.value;
+                LinkedList<Instruccion> tmp = (LinkedList<Instruccion>) resultadoParseo.value;
                 instrucciones = tmp;
             }
 
@@ -54,29 +52,40 @@ public class MainPrueba {
             // 5. Obtener la tabla global desde el árbol
             tablaSimbolos global = arbol.getTablaGlobal();
 
-            // 6. Interpretar cada instrucción
+            // ==============================
+            // 6) PRIMERA PASADA: registrar todo
+            //    (variables globales si tu lenguaje las permite,
+            //     y sobre todo: funciones)
+            // ==============================
             for (Instruccion ins : instrucciones) {
+                if (ins == null) continue;
+
                 Object res = ins.interpretar(arbol, global);
 
-                // Si quisieras ver errores semánticos individuales:
+                // si alguna instrucción devuelve Error como objeto
                 if (res instanceof Errores) {
                     Errores err = (Errores) res;
-                    System.out.println(err);
                     ControlErrores.agregarError(err);
+                    arbol.addError(err);
                 }
             }
 
-            // 7. Mostrar lo que se imprimió (si Print usa arbol.Print)
+            // ==============================
+            // 7) EJECUTAR START()
+            // ==============================
+            arbol.ejecutarStart();
+
+            // 8. Mostrar lo que se imprimió (si Print usa arbol.Print)
             System.out.println("---- SALIDA DEL PROGRAMA ----");
             System.out.println(arbol.getConsolas());
 
-            // 8. Generar archivo DOT del AST
+            // 9. Generar archivo DOT del AST
             try (PrintWriter pw = new PrintWriter("ast.dot")) {
                 pw.println(arbol.generarDotAST());
             }
             System.out.println("AST en formato DOT generado en el archivo: ast.dot");
 
-            // 9. Generar reportes HTML de tokens y errores
+            // 10. Generar reportes HTML de tokens y errores
             Token.generarReporteHTML(scanner.listaTokens);
             ControlErrores.generarReporteHTML();
 

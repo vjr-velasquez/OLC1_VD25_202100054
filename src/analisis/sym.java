@@ -11,47 +11,55 @@ public class sym {
   public static final int PAR2 = 14;
   public static final int DOSPUNTOS = 18;
   public static final int PAR1 = 13;
-  public static final int POT = 42;
-  public static final int POR = 39;
+  public static final int POT = 47;
+  public static final int POR = 44;
   public static final int CHAR = 10;
   public static final int EQUALS = 23;
-  public static final int MENORQ = 43;
+  public static final int MENORQ = 48;
   public static final int ENTERO = 3;
-  public static final int XOR = 50;
-  public static final int DIFERENTE = 47;
+  public static final int XOR = 55;
+  public static final int DIFERENTE = 52;
   public static final int CASE = 32;
   public static final int DOUBLE = 7;
   public static final int LLAVEDER = 30;
   public static final int INT = 6;
-  public static final int NOT = 51;
-  public static final int AND = 48;
-  public static final int MENORIGUAL = 45;
+  public static final int NOT = 56;
+  public static final int AND = 53;
+  public static final int MENORIGUAL = 50;
   public static final int FINCADENA = 11;
   public static final int CORCHIZQ = 19;
   public static final int IGUAL = 22;
-  public static final int OR = 49;
+  public static final int OR = 54;
   public static final int BOOL = 26;
-  public static final int DIV = 40;
+  public static final int CLASS = 57;
+  public static final int DIV = 45;
   public static final int UMENOS = 17;
   public static final int IF = 27;
+  public static final int THIS = 58;
   public static final int ID = 5;
-  public static final int MAYORIGUAL = 46;
+  public static final int MAYORIGUAL = 51;
   public static final int EOF = 0;
   public static final int DECIMAL = 4;
+  public static final int RETURN = 41;
   public static final int TRUE = 24;
+  public static final int NEW = 59;
   public static final int _break = 36;
   public static final int error = 1;
   public static final int COMA = 21;
   public static final int CADENA = 2;
   public static final int MENOS = 16;
-  public static final int MOD = 41;
+  public static final int MOD = 46;
+  public static final int START = 43;
+  public static final int VOID = 42;
   public static final int _continue = 37;
   public static final int SWITCH = 31;
   public static final int _while = 34;
   public static final int ELSE = 28;
-  public static final int MAYORQ = 44;
+  public static final int PUNTO = 40;
+  public static final int MAYORQ = 49;
   public static final int CORCHDER = 20;
   public static final int _for = 35;
+  public static final int LIST = 39;
   public static final int LLAVEIZQ = 29;
   public static final int DEFAULT = 33;
   public static final int STRING = 8;
@@ -100,6 +108,11 @@ public class sym {
   "_break",
   "_continue",
   "DO",
+  "LIST",
+  "PUNTO",
+  "RETURN",
+  "VOID",
+  "START",
   "POR",
   "DIV",
   "MOD",
@@ -112,7 +125,10 @@ public class sym {
   "AND",
   "OR",
   "XOR",
-  "NOT"
+  "NOT",
+  "CLASS",
+  "THIS",
+  "NEW"
   };
 }
 

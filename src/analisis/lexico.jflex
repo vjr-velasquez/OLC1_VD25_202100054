@@ -75,6 +75,8 @@ POR        = "*"
 DIV        = "/"
 MOD        = "%"
 POT        = "**"
+PUNTO     = "."
+
 
 // llaves para bloques
 LLAVEIZQ   = "{"
@@ -133,6 +135,24 @@ SWITCH  = "switch"
 CASE    = "case"
 DEFAULT = "default"
 
+LIST   = "list"
+
+//ADD    = "add"
+//GET    = "get"
+//SET    = "set"
+//REMOVE = "remove"
+//SIZE   = "size"
+
+RETURN = "return"
+VOID   = "void"
+START  = "Start"
+FUNC   = "func"
+
+CLASS  = "class"
+THIS   = "this"
+NEW    = "new"
+
+
 
 
 %%
@@ -162,6 +182,21 @@ DEFAULT = "default"
 <YYINITIAL> {CASE}    { agregarToken("CASE");    return new Symbol(sym.CASE,    yyline, yycolumn, yytext()); }
 <YYINITIAL> {DEFAULT} { agregarToken("DEFAULT"); return new Symbol(sym.DEFAULT, yyline, yycolumn, yytext()); }
 
+<YYINITIAL> {LIST}   { agregarToken("LIST");   return new Symbol(sym.LIST,   yyline, yycolumn, yytext()); }
+
+//<YYINITIAL> {ADD}    { agregarToken("ADD");    return new Symbol(sym.ADD,    yyline, yycolumn, yytext()); }
+//<YYINITIAL> {GET}    { agregarToken("GET");    return new Symbol(sym.GET,    yyline, yycolumn, yytext()); }
+//<YYINITIAL> {SET}    { agregarToken("SET");    return new Symbol(sym.SET,    yyline, yycolumn, yytext()); }
+//<YYINITIAL> {REMOVE} { agregarToken("REMOVE"); return new Symbol(sym.REMOVE, yyline, yycolumn, yytext()); }
+//<YYINITIAL> {SIZE}   { agregarToken("SIZE");   return new Symbol(sym.SIZE,   yyline, yycolumn, yytext()); }
+
+<YYINITIAL> {RETURN} { agregarToken("RETURN"); return new Symbol(sym.RETURN, yyline, yycolumn, yytext()); }
+<YYINITIAL> {VOID}   { agregarToken("VOID");   return new Symbol(sym.VOID,   yyline, yycolumn, yytext()); }
+<YYINITIAL> {START}  { agregarToken("START");  return new Symbol(sym.START,  yyline, yycolumn, yytext()); }
+
+<YYINITIAL> {CLASS} { agregarToken("CLASS"); return new Symbol(sym.CLASS, yyline, yycolumn, yytext()); }
+<YYINITIAL> {THIS}  { agregarToken("THIS");  return new Symbol(sym.THIS,  yyline, yycolumn, yytext()); }
+<YYINITIAL> {NEW}   { agregarToken("NEW");   return new Symbol(sym.NEW,   yyline, yycolumn, yytext()); }
 
 
 
@@ -203,6 +238,8 @@ DEFAULT = "default"
 <YYINITIAL> {IGUAL}     { agregarToken("IGUAL");     return new Symbol(sym.IGUAL,     yyline, yycolumn, yytext()); }
 <YYINITIAL> {LLAVEIZQ}  { agregarToken("LLAVEIZQ");  return new Symbol(sym.LLAVEIZQ,  yyline, yycolumn, yytext()); }
 <YYINITIAL> {LLAVEDER}  { agregarToken("LLAVEDER");  return new Symbol(sym.LLAVEDER,  yyline, yycolumn, yytext()); }
+<YYINITIAL> {PUNTO} { agregarToken("PUNTO"); return new Symbol(sym.PUNTO, yyline, yycolumn, yytext()); }
+
 
 // aritméticos
 <YYINITIAL> {MAS}   { agregarToken("MAS");   return new Symbol(sym.MAS,   yyline, yycolumn, yytext()); }

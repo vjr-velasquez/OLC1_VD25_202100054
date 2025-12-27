@@ -6,7 +6,7 @@ public class Generador {
     }
 
     public static void generarCompilador(){
-        try{    
+        try{
            // carpeta donde están lexico.jflex y sintactico.cup
            String ruta = "src/analisis/";
 
@@ -15,8 +15,16 @@ public class Generador {
            jflex.Main.generate(Flex);
 
            // CUP: genera parser.java y sym.java
-           String Cup[] = { "-destdir", ruta, "-parser", "parser", ruta + "sintactico.cup" };
-           java_cup.Main.main(Cup);
+            String Cup[] = {
+              "-destdir", ruta,
+              "-package", "analisis",
+              "-parser", "parser",
+              "-symbols", "sym",
+              "-expect", "2",
+              ruta + "sintactico.cup"
+            };
+            java_cup.Main.main(Cup);
+
 
         }catch(Exception e){
             e.printStackTrace();

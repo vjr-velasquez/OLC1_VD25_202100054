@@ -1,6 +1,5 @@
 package analisis;
 
-// importaciones
 import java_cup.runtime.Symbol;
 import java.util.LinkedList;
 
@@ -8,34 +7,12 @@ import abstracto.Instruccion;
 import Simbolo.Tipo;
 import Simbolo.tipoDato;
 
-// expresiones
-import expresiones.Nativo;
-import expresiones.Aritmeticas;
-import expresiones.OperadoresAritmeticos;
-import expresiones.Relacionales;
-import expresiones.OperadoresRelacionales;
-import expresiones.Logicas;
-import expresiones.OperadoresLogicos;
-import expresiones.AccesoVar;
-import expresiones.VectorLiteral;
-import expresiones.AccesoVector;
-
-// instrucciones
-import instrucciones.Print;
-import instrucciones.Declaracion;
-import instrucciones.AsignacionVar;
-import instrucciones.If;
-import instrucciones.While;
-import instrucciones.For;
-import instrucciones.Break;
-import instrucciones.Continue;
-import instrucciones.Switch;
-import instrucciones.CaseSwitch;
-import instrucciones.DoWhile;
-import instrucciones.AsignacionVector;
+import expresiones.*;
+import instrucciones.*;
 
 import excepciones.Errores;
 import excepciones.ControlErrores;
+
 
 
 parser code
@@ -44,6 +21,7 @@ parser code
         super(s);
     }
 
+    @Override
     public void syntax_error(Symbol s){
         String desc = "Error sintáctico. No se esperaba: " + s.value;
         System.out.println(desc + " (línea " + s.left + ", columna " + s.right + ")");
@@ -51,18 +29,18 @@ parser code
         ControlErrores.agregarError(err);
     }
 
+    @Override
     public void unrecovered_syntax_error(Symbol s){
         String desc = "Error sintáctico NO recuperable. No se esperaba: " + s.value;
         System.out.println(desc + " (línea " + s.left + ", columna " + s.right + ")");
         Errores err = new Errores("SINTACTICO", desc, s.left, s.right);
         ControlErrores.agregarError(err);
     }
-:}
-
+:};
 
 action code
 {:
-:}
+:};
 
 // ========== TERMINALES ==========
 
@@ -78,22 +56,41 @@ terminal TRUE, FALSE, BOOL;
 terminal IF, ELSE, LLAVEIZQ, LLAVEDER;
 terminal SWITCH, CASE, DEFAULT;
 terminal _while, _for, _break, _continue;
-terminal DO;    
+terminal DO;
 
+// SOLO estos de listas
+terminal LIST, PUNTO;
 
+// funciones
+terminal RETURN, VOID, START;
+
+// aritméticos / relacionales / lógicos
 terminal POR, DIV, MOD, POT;
 terminal MENORQ, MAYORQ, MENORIGUAL, MAYORIGUAL, DIFERENTE;
 terminal AND, OR, XOR, NOT;
+
+// ====== clases / oop ======
+terminal CLASS, THIS, NEW;
+
+
+
+
 
 // ========== NO TERMINALES ==========
 
 nonterminal LinkedList<Instruccion> INICIO, INSTRUCCIONES;
 nonterminal Instruccion INSTRUCCION;
+
 nonterminal Instruccion EXPRESION;
+nonterminal Instruccion POSTFIJO;
+nonterminal Instruccion PRIMARIO;
+
+
 nonterminal Instruccion DECLARACION, ASIGNACION;
 nonterminal Tipo TIPOS;
 nonterminal Instruccion SIF;
 nonterminal Instruccion SWHILE, SFOR, STRANS;
+
 nonterminal Instruccion ASIG_FOR;
 
 nonterminal Instruccion SSWITCH;
@@ -107,6 +104,29 @@ nonterminal Instruccion SDO;
 nonterminal LinkedList<Instruccion> LISTA_EXP;
 nonterminal Instruccion VECTOR_LIT;
 
+// listas
+nonterminal Instruccion LISTA_LIT;
+
+// funciones
+nonterminal Instruccion FUNCION_DECL;
+nonterminal Instruccion FUNCION_METODO;
+nonterminal Instruccion RETURN_STMT;
+nonterminal Tipo TIPO_RETORNO;
+
+// params / args
+nonterminal LinkedList<Parametro> PARAMS_OPT;
+nonterminal LinkedList<Parametro> PARAMS;
+nonterminal Parametro PARAM;
+
+nonterminal LinkedList<Instruccion> ARGS_OPT;
+nonterminal LinkedList<Instruccion> ARGS;
+
+nonterminal Instruccion LLAMADA;
+
+// ====== NUEVO: clases ======
+nonterminal Instruccion CLASE_DECL;
+nonterminal LinkedList<Instruccion> MIEMBROS_CLASE;
+nonterminal Instruccion MIEMBRO_CLASE;
 
 
 // ========== PRECEDENCIAS ==========
@@ -147,8 +167,17 @@ INSTRUCCIONES ::=
 INSTRUCCION ::=
       PRINT PAR1 EXPRESION:a PAR2 FINCADENA
         {: RESULT = new Print(a, aleft, aright); :}
+
     | DECLARACION:a  {: RESULT = a; :}
     | ASIGNACION:a   {: RESULT = a; :}
+
+    // ====== clases ======
+    | CLASE_DECL:c   {: RESULT = c; :}
+
+    // ===== START (punto de entrada) =====
+    | START ID:n PAR1 ARGS_OPT:args PAR2 FINCADENA
+        {: RESULT = new Start(n, args, nleft, nright); :}
+
     | SIF:a          {: RESULT = a; :}
     | SWHILE:a       {: RESULT = a; :}
     | SFOR:a         {: RESULT = a; :}
@@ -156,15 +185,55 @@ INSTRUCCION ::=
     | SSWITCH:a      {: RESULT = a; :}
     | SDO:a          {: RESULT = a; :}
 
+    // funciones globales (declaración)
+    | FUNCION_DECL:f {: RESULT = f; :}
+
     // asignación a vector: id[exp] = exp;
     | ID:a CORCHIZQ EXPRESION:i CORCHDER IGUAL EXPRESION:v FINCADENA
-        {: RESULT = new AsignacionVector(a, i, v, aleft, aright); :}
+        {: RESULT = new AsignacionVector(a, i, v, aleft, vright); :}
 
-    // recuperación (para que no te mate el parse)
+    // llamadas / accesos encadenados como statement:
+    //  - foo();
+    //  - obj.metodo(...);
+    //  - new A().metodo();
+    //  - this.metodo();
+    | POSTFIJO:p FINCADENA
+        {: RESULT = p; :}
+
+    // recuperación
     | error FINCADENA {: RESULT = null; :}
     | error          {: RESULT = null; :}
 ;
 
+
+
+
+
+// ===================== CLASES =====================
+
+CLASE_DECL ::=
+    CLASS ID:n
+    LLAVEIZQ MIEMBROS_CLASE:ms LLAVEDER
+    {:
+        RESULT = new Clase(n, ms, nleft, nright);
+    :}
+;
+
+MIEMBROS_CLASE ::=
+      MIEMBROS_CLASE:ls MIEMBRO_CLASE:m
+        {: if (m != null) ls.add(m); RESULT = ls; :}
+    | /* vacío */
+        {: RESULT = new LinkedList<>(); :}
+;
+
+MIEMBRO_CLASE ::=
+      DECLARACION:d   {: RESULT = d; :}
+    | FUNCION_METODO:f {: RESULT = f; :}
+    | error FINCADENA  {: RESULT = null; :}
+;
+
+
+// ===================== DO WHILE =====================
 SDO ::=
     DO
     LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
@@ -174,9 +243,7 @@ SDO ::=
     :}
 ;
 
-
-// ---------- SWITCH / CASE / DEFAULT ----------
-
+// ===================== SWITCH / CASE / DEFAULT =====================
 SSWITCH ::=
     SWITCH PAR1 EXPRESION:cond PAR2
     LLAVEIZQ LCASES:cases DFLT_OPT:def LLAVEDER
@@ -218,8 +285,7 @@ DFLT_OPT ::=
 ;
 
 
-// ---------- WHILE ----------
-
+// ===================== WHILE =====================
 SWHILE ::=
     _while PAR1 EXPRESION:cond PAR2 LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
     {:
@@ -228,8 +294,7 @@ SWHILE ::=
 ;
 
 
-// ---------- FOR ----------
-
+// ===================== FOR =====================
 ASIG_FOR ::=
     ID:a IGUAL EXPRESION:b
     {:
@@ -248,8 +313,7 @@ SFOR ::=
 ;
 
 
-// ---------- break / continue ----------
-
+// ===================== break / continue =====================
 STRANS ::=
       _break:bk FINCADENA
         {:
@@ -262,8 +326,7 @@ STRANS ::=
 ;
 
 
-// ---------- IF / ELSE ----------
-
+// ===================== IF / ELSE =====================
 SIF ::=
       IF PAR1 EXPRESION:cond PAR2 LLAVEIZQ INSTRUCCIONES:lista LLAVEDER
         {: RESULT = new If(cond, lista, null, condleft, condright); :}
@@ -273,26 +336,36 @@ SIF ::=
 ;
 
 
-// ---------- Declaración de variables ----------
-
+// ===================== Declaración de variables =====================
 DECLARACION ::=
       VAR ID:b DOSPUNTOS TIPOS:a IGUAL EXPRESION:c FINCADENA
-        {: RESULT = new Declaracion(b, c, a, aleft, aright); :}
+        {: 
+            // var id : tipo = expr;
+            RESULT = new Declaracion(b, c, a, bleft, cright);
+        :}
+
     | VAR ID:b DOSPUNTOS TIPOS:a FINCADENA
-        {: RESULT = new Declaracion(b, null, a, bleft, bright); :}
+        {:
+            // var id : tipo;
+            RESULT = new Declaracion(b, null, a, bleft, bright);
+        :}
 ;
 
 
-// ---------- Asignación de variables ----------
 
+// ===================== Asignación =====================
 ASIGNACION ::=
-    ID:a IGUAL EXPRESION:b FINCADENA
-        {: RESULT = new AsignacionVar(a, b, aleft, aright); :}
+      ID:a IGUAL EXPRESION:b FINCADENA
+        {: RESULT = new AsignacionVar(a, b, aleft, bright); :}
+
+    // obj.attr = expr;
+    | POSTFIJO:o PUNTO ID:att IGUAL EXPRESION:v FINCADENA
+        {: RESULT = new AsignacionAtributo(o, att, v, oleft, vright); :}
 ;
 
 
-// ---------- Tipos ----------
 
+// ===================== Tipos =====================
 TIPOS ::=
       INT    {: RESULT = new Tipo(tipoDato.ENTERO);   :}
     | DOUBLE {: RESULT = new Tipo(tipoDato.DECIMAL);  :}
@@ -304,11 +377,27 @@ TIPOS ::=
     | DOUBLE CORCHIZQ CORCHDER {: RESULT = new Tipo(tipoDato.DECIMAL, 1);  :}
     | STRING CORCHIZQ CORCHDER {: RESULT = new Tipo(tipoDato.CADENA, 1);   :}
     | BOOL   CORCHIZQ CORCHDER {: RESULT = new Tipo(tipoDato.BOOLEANO, 1); :}
+
+    // listas: list<T>
+    | LIST MENORQ INT MAYORQ
+        {: RESULT = new Tipo(tipoDato.LISTA, new Tipo(tipoDato.ENTERO)); :}
+    | LIST MENORQ DOUBLE MAYORQ
+        {: RESULT = new Tipo(tipoDato.LISTA, new Tipo(tipoDato.DECIMAL)); :}
+    | LIST MENORQ STRING MAYORQ
+        {: RESULT = new Tipo(tipoDato.LISTA, new Tipo(tipoDato.CADENA)); :}
+    | LIST MENORQ BOOL MAYORQ
+        {: RESULT = new Tipo(tipoDato.LISTA, new Tipo(tipoDato.BOOLEANO)); :}
 ;
 
 
-// ---------- Literales de vector ----------
+// ===================== tipo retorno =====================
+TIPO_RETORNO ::=
+      TIPOS:t {: RESULT = t; :}
+    | VOID    {: RESULT = new Tipo(tipoDato.VOID); :}
+;
 
+
+// ===================== Literales de vector =====================
 VECTOR_LIT ::=
       CORCHIZQ:ci CORCHDER:cd
         {:
@@ -320,8 +409,6 @@ VECTOR_LIT ::=
         :}
 ;
 
-
-
 LISTA_EXP ::=
       LISTA_EXP:ls COMA EXPRESION:e
         {: ls.add(e); RESULT = ls; :}
@@ -330,8 +417,122 @@ LISTA_EXP ::=
 ;
 
 
-// ========== EXPRESIONES ==========
+// ===================== LISTAS =====================
+LISTA_LIT ::=
+      LIST:l PAR1 PAR2:p2
+        {:
+            RESULT = new ListaLiteral(new LinkedList<Instruccion>(), lleft, p2right);
+        :}
+    | LIST:l PAR1 LISTA_EXP:lst PAR2:p2
+        {:
+            RESULT = new ListaLiteral(lst, lleft, p2right);
+        :}
+;
 
+
+// ================== FUNCIONES (GLOBALES) ==================
+FUNCION_DECL ::=
+      TIPO_RETORNO:tr ID:n PAR1 PARAMS_OPT:ps PAR2
+      LLAVEIZQ INSTRUCCIONES:body LLAVEDER
+        {:
+            RESULT = new Funcion(tr, n, ps, body, trleft, trright);
+        :}
+;
+
+// ================== MÉTODOS (DENTRO DE CLASE) ==================
+FUNCION_METODO ::=
+      TIPO_RETORNO:tr ID:n PAR1 PARAMS_OPT:ps PAR2
+      LLAVEIZQ INSTRUCCIONES:body LLAVEDER
+        {:
+            RESULT = new Funcion(tr, n, ps, body, trleft, trright);
+        :}
+;
+
+
+// ================== PARAMS / RETURN ==================
+PARAMS_OPT ::=
+      PARAMS:p {: RESULT = p; :}
+    | /* vacío */ {: RESULT = new LinkedList<>(); :}
+;
+
+PARAMS ::=
+      PARAMS:ls COMA PARAM:p {: ls.add(p); RESULT = ls; :}
+    | PARAM:p {: RESULT = new LinkedList<>(); RESULT.add(p); :}
+;
+
+PARAM ::=
+      TIPOS:t ID:n
+        {:
+            RESULT = new Parametro(t, n, tleft, nright);
+        :}
+;
+
+RETURN_STMT ::=
+      RETURN:r EXPRESION:e FINCADENA
+        {: RESULT = new Return(e, rleft, rright); :}
+    | RETURN:r FINCADENA
+        {: RESULT = new Return(null, rleft, rright); :}
+;
+
+
+// ================== LLAMADA FUNCIÓN (GLOBAL) ==================
+LLAMADA ::=
+      ID:n PAR1 ARGS_OPT:args PAR2
+        {:
+            RESULT = new LlamadaFuncion(n, args, nleft, nright);
+        :}
+;
+
+ARGS_OPT ::=
+      ARGS:a {: RESULT = a; :}
+    | /* vacío */ {: RESULT = new LinkedList<>(); :}
+;
+
+ARGS ::=
+      ARGS:ls COMA EXPRESION:e {: ls.add(e); RESULT = ls; :}
+    | EXPRESION:e {: RESULT = new LinkedList<Instruccion>(); RESULT.add(e); :}
+;
+
+
+// ================== POSTFIJO (this, obj.attr, obj.metodo()) ==================
+POSTFIJO ::=
+      PRIMARIO:p
+        {: RESULT = p; :}
+
+    | POSTFIJO:o PUNTO ID:att
+        {:
+            RESULT = new AccesoAtributo(o, att, oleft, attright);
+        :}
+
+    | POSTFIJO:o PUNTO ID:m PAR1 ARGS_OPT:args PAR2
+        {:
+            RESULT = new LlamadaMetodo(o, m, args, oleft, mright);
+        :}
+;
+
+
+
+PRIMARIO ::=
+      PAR1 EXPRESION:a PAR2 {: RESULT = a; :}
+    | ID:a {: RESULT = new AccesoVar(a, aleft, aright); :}
+    | THIS:t {: RESULT = new This(tleft, tright); :}
+    | LLAMADA:c {: RESULT = c; :}
+    | ENTERO:a  {: RESULT = new Nativo(Integer.parseInt(a), new Tipo(tipoDato.ENTERO), aleft, aright); :}
+    | DECIMAL:a {: RESULT = new Nativo(new Double(a), new Tipo(tipoDato.DECIMAL), aleft, aright); :}
+    | CHAR:a    {: RESULT = new Nativo(a, new Tipo(tipoDato.CARACTER), aleft, aright); :}
+    | CADENA:a  {: RESULT = new Nativo(a, new Tipo(tipoDato.CADENA), aleft, aright); :}
+    | TRUE:a    {: RESULT = new Nativo(true, new Tipo(tipoDato.BOOLEANO), aleft, aright); :}
+    | FALSE:a   {: RESULT = new Nativo(false,new Tipo(tipoDato.BOOLEANO), aleft, aright); :}
+    | VECTOR_LIT:vec {: RESULT = vec; :}
+    | LISTA_LIT:l {: RESULT = l; :}
+    | NEW ID:n PAR1 PAR2
+        {: RESULT = new NewObjeto(n, nleft, nright); :}
+
+;
+
+
+
+// ================== EXPRESIONES ==================
 EXPRESION ::=
     /* ----- UNARIO ----- */
       MENOS EXPRESION:a
@@ -357,7 +558,6 @@ EXPRESION ::=
         {: RESULT = new Aritmeticas(a, b, OperadoresAritmeticos.POTENCIA, aleft, aright); :}
 
     /* ----- RELACIONALES ----- */
-
     | EXPRESION:a IGUAL IGUAL EXPRESION:b
         {: RESULT = new Relacionales(a, b, OperadoresRelacionales.EQUALS, aleft, aright); :} %prec EQUALS
 
@@ -377,7 +577,6 @@ EXPRESION ::=
         {: RESULT = new Relacionales(a, b, OperadoresRelacionales.MAYORIGUAL, aleft, aright); :}
 
     /* ----- LÓGICOS ----- */
-
     | EXPRESION:a AND EXPRESION:b
         {: RESULT = new Logicas(a, b, OperadoresLogicos.AND, aleft, aright); :}
 
@@ -390,37 +589,6 @@ EXPRESION ::=
     | NOT EXPRESION:a
         {: RESULT = new Logicas(a, OperadoresLogicos.NOT, aleft, aright); :} %prec NOT
 
-    /* ----- PRIMARIOS ----- */
-
-    | PAR1 EXPRESION:a PAR2
-        {: RESULT = a; :}
-
-    // vector literal: [] o [a,b,c]
-    | VECTOR_LIT:vec
-        {: RESULT = vec; :}
-
-    | ENTERO:a
-        {: RESULT = new Nativo(Integer.parseInt(a), new Tipo(tipoDato.ENTERO), aleft, aright); :}
-
-    | DECIMAL:a
-        {: RESULT = new Nativo(new Double(a), new Tipo(tipoDato.DECIMAL), aleft, aright); :}
-
-    | CHAR:a
-        {: RESULT = new Nativo(a, new Tipo(tipoDato.CARACTER), aleft, aright); :}
-
-    | CADENA:a
-        {: RESULT = new Nativo(a, new Tipo(tipoDato.CADENA), aleft, aright); :}
-
-    | TRUE:a
-        {: RESULT = new Nativo(true,  new Tipo(tipoDato.BOOLEANO), aleft, aright ); :}
-
-    | FALSE:a
-        {: RESULT = new Nativo(false, new Tipo(tipoDato.BOOLEANO), aleft, aright ); :}
-
-    | ID:a
-        {: RESULT = new AccesoVar(a, aleft, aright); :}
-
-    // acceso vector: id[exp]
-    | ID:a CORCHIZQ EXPRESION:i CORCHDER
-        {: RESULT = new AccesoVector(a, i, aleft, aright); :}
+    /* ----- BASE (POSTFIJO) ----- */
+    | POSTFIJO:p {: RESULT = p; :}
 ;

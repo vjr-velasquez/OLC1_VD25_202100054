@@ -20,28 +20,30 @@ public class VectorLiteral extends Instruccion {
     @Override
     public Object interpretar(Arbol arbol, tablaSimbolos tabla) {
 
-        // vector vacío: lo dejamos como vector de VOID (o podrías marcar error)
         if (elementos == null) elementos = new LinkedList<>();
 
         Object[] arr = new Object[elementos.size()];
 
+        // tipo base inferido
         tipoDato base = null;
 
         for (int i = 0; i < elementos.size(); i++) {
+
             Instruccion e = elementos.get(i);
             Object val = e.interpretar(arbol, tabla);
 
             if (val instanceof Errores) return val;
 
-            // determinar tipo base con el primer elemento
+            // si el tipo de la expresión no quedó bien seteado, igual intentamos inferir
+            tipoDato tipoElem = e.tipo != null ? e.tipo.getTipo() : tipoDato.VOID;
+
             if (base == null) {
-                base = e.tipo.getTipo();
+                base = tipoElem;
             } else {
-                // todos deben ser del mismo tipo base
-                if (e.tipo.getTipo() != base) {
+                if (tipoElem != base) {
                     return new Errores(
                             "SEMANTICO",
-                            "Vector literal con tipos mezclados: " + base + " y " + e.tipo.getTipo(),
+                            "Vector literal con tipos mezclados: " + base + " y " + tipoElem,
                             this.linea,
                             this.col
                     );
@@ -51,10 +53,11 @@ public class VectorLiteral extends Instruccion {
             arr[i] = val;
         }
 
-        // si está vacío, no hay forma de inferir tipo: lo dejamos como VOID[]
+        // vector vacío: no se puede inferir tipo -> queda como VOID[]
         if (base == null) base = tipoDato.VOID;
 
-        this.tipo = new Tipo(base, 1); // vector del tipo base
+        this.tipo = new Tipo(base, 1);
         return arr;
     }
+
 }

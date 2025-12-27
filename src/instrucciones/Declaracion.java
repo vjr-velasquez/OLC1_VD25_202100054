@@ -31,24 +31,83 @@ public class Declaracion extends Instruccion {
                 return valorInterpretado;
             }
 
-            // ✅ Validación de tipo + dimensiones (vector vs no vector)
-            if (this.valor.tipo.getTipo() != this.tipo.getTipo()
-                || this.valor.tipo.getDimensiones() != this.tipo.getDimensiones()) {
-                return new Errores(
-                        "SEMANTICO",
-                        "Tipos erroneos en la declaración de '" + this.identificador + "'",
-                        this.linea, this.col
-                );
+            // =========================
+            // VALIDACIÓN PARA LISTAS
+            // =========================
+            if (this.tipo.esLista()) {
+
+                if (!(valorInterpretado instanceof java.util.LinkedList)) {
+                    return new Errores(
+                            "SEMANTICO",
+                            "Se esperaba una lista en la declaración de '" + this.identificador + "'",
+                            this.linea, this.col
+                    );
+                }
+
+                // Caso list() vacío: ListaLiteral queda como LISTA<VOID>, tipamos por contexto
+                if (this.valor.tipo != null
+                        && this.valor.tipo.esLista()
+                        && this.valor.tipo.getSubtipo() != null
+                        && this.valor.tipo.getSubtipo().getTipo() == tipoDato.VOID) {
+
+                    this.valor.tipo = this.tipo;
+                } else {
+                    // Validar list<T> vs list<T>
+                    if (this.valor.tipo == null
+                            || !this.valor.tipo.esLista()
+                            || this.valor.tipo.getSubtipo() == null
+                            || this.tipo.getSubtipo() == null
+                            || this.valor.tipo.getSubtipo().getTipo() != this.tipo.getSubtipo().getTipo()) {
+
+                        return new Errores(
+                                "SEMANTICO",
+                                "Tipos erroneos en la declaración de '" + this.identificador + "'",
+                                this.linea, this.col
+                        );
+                    }
+                }
+
+            }
+            // =========================
+            // VALIDACIÓN VECTORES / ESCALARES (tu lógica actual)
+            // =========================
+            else {
+                if (this.valor.tipo.getTipo() != this.tipo.getTipo()
+                    || this.valor.tipo.getDimensiones() != this.tipo.getDimensiones()) {
+
+                    // excepción: permitir [] cuando es vector declarado
+                    if (this.tipo.esVector()
+                        && this.valor.tipo.esVector()
+                        && this.valor.tipo.getDimensiones() == this.tipo.getDimensiones()
+                        && (valorInterpretado instanceof Object[] arr)
+                        && arr.length == 0) {
+
+                        this.valor.tipo = this.tipo;
+
+                    } else {
+                        return new Errores(
+                                "SEMANTICO",
+                                "Tipos erroneos en la declaración de '" + this.identificador + "'",
+                                this.linea, this.col
+                        );
+                    }
+                }
             }
         }
 
         // Si NO trae asignación → asignar valor por defecto
         else {
-            // ✅ si es vector, valor por defecto: vector vacío
-            if (this.tipo.esVector()) {
+
+            // default lista: lista vacía
+            if (this.tipo.esLista()) {
+                valorInterpretado = new java.util.LinkedList<Object>();
+            }
+            // default vector
+            else if (this.tipo.esVector()) {
                 valorInterpretado = new Object[0];
-            } else {
-                // valor por defecto según el tipo
+            }
+            // default escalar
+            else {
                 switch(this.tipo.getTipo()){
                     case ENTERO:   valorInterpretado = 0; break;
                     case DECIMAL:  valorInterpretado = 0.0; break;
@@ -69,20 +128,37 @@ public class Declaracion extends Instruccion {
         return null;
     }
 
+
+
     @Override
     public NodoAST getNodoAST() {
         NodoAST nodo = new NodoAST("DECLARACION");
 
         // TIPO
         if (this.tipo != null) {
-            String t = this.tipo.getTipo().toString();
-            if (this.tipo.esVector()) {
-                t += "[]";
+            String t;
+
+            // lista: list<T>
+            if (this.tipo.esLista()) {
+                String sub = "VOID";
+                if (this.tipo.getSubtipo() != null) {
+                    sub = this.tipo.getSubtipo().getTipo().toString();
+                }
+                t = "list<" + sub + ">";
             }
+            // vector: tipo[]
+            else {
+                t = this.tipo.getTipo().toString();
+                if (this.tipo.esVector()) {
+                    t += "[]";
+                }
+            }
+
             nodo.agregarHijo(new NodoAST("TIPO: " + t));
         } else {
             nodo.agregarHijo(new NodoAST("TIPO: null"));
         }
+
 
         // ID
         nodo.agregarHijo(new NodoAST("ID: " + this.identificador));

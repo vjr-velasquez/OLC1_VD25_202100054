@@ -5,6 +5,7 @@ import Simbolo.Arbol;
 import Simbolo.Tipo;
 import Simbolo.tipoDato;
 import Simbolo.tablaSimbolos;
+import Simbolo.ReturnValue;
 import excepciones.Errores;
 import java.util.LinkedList;
 
@@ -27,54 +28,53 @@ public class Switch extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, tablaSimbolos tabla) {
-        // Evaluamos la condición del switch
         Object valorCond = condicion.interpretar(arbol, tabla);
-        if (valorCond instanceof Errores) {
-            return valorCond;
-        }
+        if (valorCond instanceof Errores) return valorCond;
 
-        boolean seEjecutoAlguno = false; // para saber si ya entramos a algún case
+        boolean seEjecutoAlguno = false;
 
-        // Recorremos los cases
+        // CASES
         for (CaseSwitch c : casos) {
             Object valorCase = c.getExpresion().interpretar(arbol, tabla);
-            if (valorCase instanceof Errores) {
-                return valorCase;
-            }
+            if (valorCase instanceof Errores) return valorCase;
 
             boolean coincide =
-                (valorCond == null && valorCase == null)
-                || (valorCond != null && valorCond.equals(valorCase));
+                    (valorCond == null && valorCase == null)
+                    || (valorCond != null && valorCond.equals(valorCase));
 
-            // Si coincide este case, o ya venimos arrastrando ejecución (fall-through)
             if (coincide || seEjecutoAlguno) {
                 seEjecutoAlguno = true;
 
-                // Nuevo entorno para las instrucciones del case
                 tablaSimbolos local = new tablaSimbolos(tabla);
 
                 for (Instruccion ins : c.getInstrucciones()) {
                     Object res = ins.interpretar(arbol, local);
 
-                    // si es error, lo guardamos y seguimos
+                    // errores: los agregas pero no paras (tu comportamiento actual)
                     if (res instanceof Errores) {
                         arbol.getErrores().add((Errores) res);
+                        continue;
                     }
 
-                    // Si viene un break, termina el switch
-                    if (res instanceof instrucciones.Break) {
+                    // ✅ PROPAGAR RETURN
+                    if (res instanceof ReturnValue) {
+                        return res;
+                    }
+
+                    // break: termina el switch
+                    if (res instanceof Break) {
                         return null;
                     }
 
-                    // Si viene un continue, se lo devolvemos al while/for exterior
-                    if (res instanceof instrucciones.Continue) {
+                    // continue: se lo devolvemos al while/for exterior
+                    if (res instanceof Continue) {
                         return res;
                     }
                 }
             }
         }
 
-        // Si no se ejecutó ningún case y hay default, lo corremos
+        // DEFAULT
         if (!seEjecutoAlguno && defecto != null) {
             tablaSimbolos local = new tablaSimbolos(tabla);
 
@@ -83,13 +83,19 @@ public class Switch extends Instruccion {
 
                 if (res instanceof Errores) {
                     arbol.getErrores().add((Errores) res);
+                    continue;
                 }
 
-                if (res instanceof instrucciones.Break) {
+                // ✅ PROPAGAR RETURN
+                if (res instanceof ReturnValue) {
+                    return res;
+                }
+
+                if (res instanceof Break) {
                     return null;
                 }
 
-                if (res instanceof instrucciones.Continue) {
+                if (res instanceof Continue) {
                     return res;
                 }
             }

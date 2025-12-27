@@ -1,4 +1,3 @@
-
 package instrucciones;
 
 import Simbolo.*;
@@ -12,80 +11,105 @@ public class If extends Instruccion {
     private LinkedList<Instruccion> instruccioneselseif;
     private LinkedList<Instruccion> instruccioneselse;
 
-    public If(Instruccion expresion, LinkedList<Instruccion> instrucciones,  int linea, int col) {
+    public If(Instruccion expresion, LinkedList<Instruccion> instrucciones, int linea, int col) {
         super(new Tipo(tipoDato.VOID), linea, col);
         this.expresion = expresion;
         this.instrucciones = instrucciones;
     }
-    public If(Instruccion expresion, LinkedList<Instruccion> instrucciones, LinkedList<Instruccion> instruccioneselse,int linea, int col){
+
+    public If(Instruccion expresion, LinkedList<Instruccion> instrucciones, LinkedList<Instruccion> instruccioneselse, int linea, int col){
         super(new Tipo(tipoDato.VOID), linea, col);
         this.expresion = expresion;
         this.instrucciones = instrucciones;
-        this.instruccioneselse = instruccioneselse;  
+        this.instruccioneselse = instruccioneselse;
     }
-    public If(Instruccion expresion, LinkedList<Instruccion> instrucciones, LinkedList<Instruccion> instruccioneselseif,LinkedList<Instruccion> instruccioneselse,int linea, int col){
+
+    public If(Instruccion expresion, LinkedList<Instruccion> instrucciones, LinkedList<Instruccion> instruccioneselseif, LinkedList<Instruccion> instruccioneselse, int linea, int col){
         super(new Tipo(tipoDato.VOID), linea, col);
         this.expresion = expresion;
         this.instrucciones = instrucciones;
         this.instruccioneselseif = instruccioneselseif;
-        this.instruccioneselse = instruccioneselse;  
+        this.instruccioneselse = instruccioneselse;
     }
+
     @Override
     public Object interpretar(Arbol arbol, tablaSimbolos tabla){
-        var condicion = this.expresion.interpretar(arbol, tabla);
-        if (condicion instanceof Errores){
-            return condicion;
-        }
-        // se verifica el condicional es de tipo booleano
+        Object condicion = this.expresion.interpretar(arbol, tabla);
+        if (condicion instanceof Errores) return condicion;
+
         if(!(condicion instanceof Boolean)){
-            return new Errores("Semantico", "La condicion del if tiene que devolver un valor booleano", this.linea, this.col);
+            return new Errores("SEMANTICO", "La condicion del if tiene que devolver un valor booleano", this.linea, this.col);
         }
+
         boolean ejecutarIf = (Boolean) condicion;
-        // bloque para manejar if
-        // ejecutar el bloque de instrucciones if
+
+        // =========================
+        // IF
+        // =========================
         if(ejecutarIf){
-            //se va ejecutar el bloque de instrucciones if
-            var nuevaTabla = new tablaSimbolos(tabla);
-            for (var inst: instrucciones){
-                var res = inst.interpretar(arbol, nuevaTabla);
-                if (res instanceof Errores){
-                    return res;
-                }
+            tablaSimbolos nuevaTabla = new tablaSimbolos(tabla);
+
+            for (Instruccion inst : instrucciones){
+                if (inst == null) continue;
+
+                Object res = inst.interpretar(arbol, nuevaTabla);
+
+                if (res instanceof Errores) return res;
+
+                // ✅ PROPAGAR RETURN / BREAK / CONTINUE
+                if (res instanceof ReturnValue) return res;
+                if (res instanceof Break) return res;
+                if (res instanceof Continue) return res;
             }
-            return true; // ejecuto if
+
+            return true; // ejecutó if (usado para elseif)
         }
-        /*
-                    if(){
-                        if(){
-                        }
-                    }
-        
-                */
-        // bloque para manejar elseif
+
+        // =========================
+        // ELSEIF (tu diseño lo maneja como lista de "If" anidados)
+        // =========================
         if (instruccioneselseif != null){
-            for (Instruccion elseif: instruccioneselseif){
-                var res  = elseif.interpretar(arbol, tabla);
-                if (res instanceof Errores){
-                    return res;
-                }
+            for (Instruccion elseif : instruccioneselseif){
+                if (elseif == null) continue;
+
+                Object res = elseif.interpretar(arbol, tabla);
+
+                if (res instanceof Errores) return res;
+
+                // ✅ si el elseif retornó una señal, la propagamos
+                if (res instanceof ReturnValue) return res;
+                if (res instanceof Break) return res;
+                if (res instanceof Continue) return res;
+
+                // si el elseif se ejecutó, corta la cadena
                 if (res instanceof Boolean && (Boolean) res){
                     return true;
                 }
             }
         }
-        
-        // bloque para manejar else
+
+        // =========================
+        // ELSE
+        // =========================
         if (instruccioneselse != null){
-            var nuevaTabla = new tablaSimbolos(tabla);
-            for(var instElse: instruccioneselse){
-                var res = instElse.interpretar(arbol, nuevaTabla);
-                if (res instanceof Errores){
-                    return res;
-                }
+            tablaSimbolos nuevaTabla = new tablaSimbolos(tabla);
+
+            for (Instruccion instElse : instruccioneselse){
+                if (instElse == null) continue;
+
+                Object res = instElse.interpretar(arbol, nuevaTabla);
+
+                if (res instanceof Errores) return res;
+
+                // ✅ PROPAGAR RETURN / BREAK / CONTINUE
+                if (res instanceof ReturnValue) return res;
+                if (res instanceof Break) return res;
+                if (res instanceof Continue) return res;
             }
+
             return true;
         }
+
         return false;
-        
     }
 }

@@ -34,9 +34,10 @@ public class AsignacionVector extends Instruccion {
         }
 
         Object rawArr = s.getValor();
-        if (!(rawArr instanceof Object[] arr)) {
+        if (!(rawArr instanceof Object[])) {
             return new Errores("SEMANTICO", "Valor interno de '" + id + "' no es vector", this.linea, this.col);
         }
+        Object[] arr = (Object[]) rawArr;
 
         Object idxVal = indice.interpretar(arbol, tabla);
         if (idxVal instanceof Errores) return idxVal;
@@ -53,7 +54,6 @@ public class AsignacionVector extends Instruccion {
         Object val = valor.interpretar(arbol, tabla);
         if (val instanceof Errores) return val;
 
-        // validar tipo base
         tipoDato base = s.getTipo().getTipo();
         if (valor.tipo.getTipo() != base) {
             return new Errores(
@@ -64,7 +64,8 @@ public class AsignacionVector extends Instruccion {
         }
 
         arr[idx] = val;
-        s.setValor(arr); // no es obligatorio, pero queda explícito
+        s.setValor(arr);
         return null;
     }
+
 }

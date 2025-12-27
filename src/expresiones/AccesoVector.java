@@ -27,15 +27,15 @@ public class AccesoVector extends Instruccion {
             return new Errores("SEMANTICO", "Vector/Variable '" + id + "' no existe", this.linea, this.col);
         }
 
-        // validar que sea vector
         if (!s.getTipo().esVector()) {
             return new Errores("SEMANTICO", "'" + id + "' no es un vector", this.linea, this.col);
         }
 
         Object rawArr = s.getValor();
-        if (!(rawArr instanceof Object[] arr)) {
+        if (!(rawArr instanceof Object[])) {
             return new Errores("SEMANTICO", "Valor interno de '" + id + "' no es vector", this.linea, this.col);
         }
+        Object[] arr = (Object[]) rawArr;
 
         Object idxVal = indice.interpretar(arbol, tabla);
         if (idxVal instanceof Errores) return idxVal;
@@ -50,8 +50,9 @@ public class AccesoVector extends Instruccion {
             return new Errores("SEMANTICO", "Índice fuera de rango en '" + id + "': " + idx, this.linea, this.col);
         }
 
-        // tipo resultado = tipo base del vector
+        // tipo del resultado = tipo base del vector
         this.tipo = new Tipo(s.getTipo().getTipo());
         return arr[idx];
     }
+
 }

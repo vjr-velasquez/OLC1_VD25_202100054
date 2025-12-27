@@ -3,11 +3,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/velas/compiladores1-vacas/src/analisis/MainPrueba.java</file>
-            <file>file:/C:/Users/velas/compiladores1-vacas/src/compiladores1/vacas/Compiladores1Vacas.java</file>
+            <file>file:/C:/Users/velas/compiladores1-vacas/src/analisis/lexico.jflex</file>
+            <file>file:/C:/Users/velas/compiladores1-vacas/src/analisis/sintactico.cup</file>
             <file>file:/C:/Users/velas/compiladores1-vacas/entrada2.txt</file>
-            <file>file:/C:/Users/velas/compiladores1-vacas/src/analisis/Generador.java</file>
-            <file>file:/C:/Users/velas/compiladores1-vacas/src/compiladores1/vacas/interfaz.java</file>
         </group>
     </open-files>
 </project-private>

@@ -7,6 +7,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.Map;
+
+import instrucciones.Funcion;
+import instrucciones.Clase;
 
 public class Arbol {
     private LinkedList<Instruccion> instrucciones;
@@ -14,11 +19,26 @@ public class Arbol {
     private LinkedList<Errores> errores;
     private String consolas;
 
+    // =========================
+    // FUNCIONES (FASE 2)
+    // =========================
+    // Mapa global de funciones por nombre (sin sobrecarga).
+    // Si más adelante quieres sobrecarga, cambiamos la clave a firma: nombre + "(" + tipos + ")"
+    private Map<String, Funcion> funciones;
+
+    // =========================
+    // CLASES (FASE 2)
+    // =========================
+    private Map<String, Clase> clases;
+
     public Arbol(LinkedList<Instruccion> instrucciones) {
         this.instrucciones = instrucciones;
         this.tablaGlobal = new tablaSimbolos();
         this.errores = new LinkedList<>();
         this.consolas = "";
+
+        this.funciones = new HashMap<>();
+        this.clases = new HashMap<>();
     }
 
     public LinkedList<Instruccion> getInstrucciones() {
@@ -62,8 +82,125 @@ public class Arbol {
     }
 
     /** Método usado por las instrucciones Print */
-    public void Print(String valor){
+    public void Print(String valor) {
         this.consolas += valor + "\n";
+    }
+
+    // =========================
+    // FUNCIONES: API
+    // =========================
+
+    /** Devuelve el mapa de funciones (por si quieres reportarlo) */
+    public Map<String, Funcion> getFunciones() {
+        return funciones;
+    }
+
+    /** Registrar función en el entorno global */
+    public boolean registrarFuncion(Funcion f) {
+        if (f == null) return false;
+
+        String nombre = f.getNombre();
+        if (nombre == null) return false;
+
+        if (this.funciones.containsKey(nombre)) {
+            // error semántico: función ya existe
+            Errores err = new Errores(
+                    "SEMANTICO",
+                    "Función ya declarada: " + nombre,
+                    f.getLinea(),
+                    f.getCol()
+            );
+            addError(err);
+            return false;
+        }
+
+        this.funciones.put(nombre, f);
+        return true;
+    }
+
+    /** Obtener función por nombre */
+    public Funcion getFuncion(String nombre) {
+        if (nombre == null) return null;
+        return this.funciones.get(nombre);
+    }
+
+    /** Verifica si existe Start y cumple firma básica: void Start() */
+    public boolean validarStart() {
+        Funcion start = getFuncion("Start");
+        if (start == null) {
+            addError(new Errores("SEMANTICO", "No existe la función Start() como punto de entrada.", 0, 0));
+            return false;
+        }
+
+        // Debe ser VOID
+        if (start.getTipoRetorno() == null || start.getTipoRetorno().getTipo() != tipoDato.VOID) {
+            addError(new Errores("SEMANTICO", "Start() debe ser de tipo void.", start.getLinea(), start.getCol()));
+            return false;
+        }
+
+        // Debe tener 0 parámetros
+        if (start.getParametros() != null && !start.getParametros().isEmpty()) {
+            addError(new Errores("SEMANTICO", "Start() no debe recibir parámetros.", start.getLinea(), start.getCol()));
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Ejecuta Start() (asumiendo que ya registraste todas las funciones).
+     * La ejecución real la va a hacer Funcion.ejecutar(...)
+     */
+    public Object ejecutarStart() {
+        if (!validarStart()) return null;
+
+        Funcion start = getFuncion("Start");
+        try {
+            // tabla local hija de global (si tu tablaSimbolos soporta padre)
+            // Si tu tablaSimbolos aún no tiene constructor con padre, luego lo ajustamos.
+            tablaSimbolos local = new tablaSimbolos(this.tablaGlobal);
+
+            // Start sin args
+            return start.ejecutar(this, local, new LinkedList<>());
+        } catch (Exception ex) {
+            addError(new Errores("SEMANTICO", "Excepción ejecutando Start(): " + ex.getMessage(), start.getLinea(), start.getCol()));
+            return null;
+        }
+    }
+
+    // =========================
+    // CLASES: API
+    // =========================
+
+    public Map<String, Clase> getClases() {
+        return clases;
+    }
+
+    public boolean existeClase(String nombre) {
+        if (nombre == null) return false;
+        return this.clases.containsKey(nombre);
+    }
+
+    public boolean registrarClase(String nombre, Clase c) {
+        if (nombre == null || c == null) return false;
+
+        if (this.clases.containsKey(nombre)) {
+            addError(new Errores(
+                    "SEMANTICO",
+                    "Clase ya declarada: " + nombre,
+                    c.linea,
+                    c.col
+            ));
+            return false;
+        }
+
+        this.clases.put(nombre, c);
+        return true;
+    }
+
+    public Clase getClase(String nombre) {
+        if (nombre == null) return null;
+        return this.clases.get(nombre);
     }
 
     // =========================
@@ -79,7 +216,7 @@ public class Arbol {
         if (instrucciones != null) {
             for (Instruccion ins : instrucciones) {
                 if (ins != null) {
-                    insts.agregarHijo(ins.getNodoAST()); // opción B: siempre hay algo
+                    insts.agregarHijo(ins.getNodoAST());
                 }
             }
         }
@@ -129,8 +266,8 @@ public class Arbol {
                 .replace("\n", "\\n")
                 .replace("\r", "");
     }
-    
-        public void generarAstPng(String dotPath, String pngPath) throws IOException, InterruptedException {
+
+    public void generarAstPng(String dotPath, String pngPath) throws IOException, InterruptedException {
         // 1) escribir DOT
         String dot = generarDotAST();
         Files.writeString(Path.of(dotPath), dot, StandardCharsets.UTF_8);
@@ -147,5 +284,4 @@ public class Arbol {
             throw new IOException("Graphviz falló (code=" + code + "):\n" + salida);
         }
     }
-
 }

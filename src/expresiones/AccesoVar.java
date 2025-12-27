@@ -24,12 +24,13 @@ public class AccesoVar extends Instruccion {
     }
 
     public Object interpretar(Arbol arbol, tablaSimbolos tabla){
-        var valor = tabla.getVariable(this.id);
-        if (valor == null){
-            return new Errores("semantico", "Variable no existente", this.linea, this.col);
+        var simbolo = tabla.getVariable(this.id);
+        if (simbolo == null){
+            return new Errores("SEMANTICO", "Variable no existente: " + this.id, this.linea, this.col);
         }
-        this.tipo.setTipo(valor.getTipo().getTipo());
-        return valor.getValor();
+        this.tipo = simbolo.getTipo();  // no pierdes info
+        return simbolo.getValor();
     }
+
     
 }

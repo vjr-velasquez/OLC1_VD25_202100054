@@ -9,5 +9,6 @@ public enum tipoDato {
     CARACTER,
     CADENA, 
     VOID,
-    IDENTIFICADOR
+    IDENTIFICADOR,
+    LISTA
 }

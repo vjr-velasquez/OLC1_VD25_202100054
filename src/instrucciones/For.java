@@ -1,6 +1,7 @@
 package instrucciones;
 
 import Simbolo.Arbol;
+import Simbolo.ReturnValue;
 import Simbolo.Tipo;
 import Simbolo.tablaSimbolos;
 import Simbolo.tipoDato;
@@ -29,28 +30,22 @@ public class For extends Instruccion {
 
     @Override
     public Object interpretar(Arbol arbol, tablaSimbolos tabla) {
+
         // Ámbito donde vive la variable del for
         tablaSimbolos tablaFor = new tablaSimbolos(tabla);
 
-        // 1) Inicialización (asignación/declaración)
+        // 1) Inicialización
         Object resIni = this.asignacion.interpretar(arbol, tablaFor);
-        if (resIni instanceof Errores) {
-            return resIni;
-        }
+        if (resIni instanceof Errores) return resIni;
 
         // 2) Evaluamos condición por primera vez
         Object cond = this.condicion.interpretar(arbol, tablaFor);
-        if (cond instanceof Errores) {
-            return cond;
-        }
+        if (cond instanceof Errores) return cond;
 
-        // Debe ser booleana
-        if (this.condicion.tipo.getTipo() != tipoDato.BOOLEANO) {
-            Errores err = new Errores(
-                    "SEMANTICO",
-                    "La condición del ciclo for no es de tipo booleano",
-                    this.linea, this.col
-            );
+        if (!(cond instanceof Boolean)) {
+            Errores err = new Errores("SEMANTICO",
+                    "La condición del ciclo for debe ser booleana",
+                    this.linea, this.col);
             arbol.getErrores().add(err);
             return err;
         }
@@ -58,46 +53,45 @@ public class For extends Instruccion {
         // 3) Ciclo principal
         while ((boolean) cond) {
 
-            // Nuevo ámbito para las instrucciones del cuerpo
+            // Nuevo ámbito para el cuerpo (hijo del for)
             tablaSimbolos tablaInstrucciones = new tablaSimbolos(tablaFor);
 
+            boolean huboContinue = false;
+
             for (Instruccion ins : instrucciones) {
+                if (ins == null) continue;
+
                 Object resIns = ins.interpretar(arbol, tablaInstrucciones);
 
-                if (resIns instanceof Errores) {
-                    return resIns;
-                }
+                if (resIns instanceof Errores) return resIns;
+
+                // ✅ return dentro del for: se propaga a la función
+                if (resIns instanceof ReturnValue) return resIns;
 
                 // break -> salimos del for
                 if (resIns instanceof Break) {
                     return null;
                 }
 
-                // continue -> dejamos de ejecutar el resto de instrucciones
-                // y pasamos a la actualización
+                // continue -> saltamos a actualización
                 if (resIns instanceof Continue) {
+                    huboContinue = true;
                     break;
                 }
             }
 
-            // 4) Actualización (i = i + 1, etc.)
+            // 4) Actualización
             Object resAct = this.actualizacion.interpretar(arbol, tablaFor);
-            if (resAct instanceof Errores) {
-                return resAct;
-            }
+            if (resAct instanceof Errores) return resAct;
 
             // 5) Re-evaluamos condición
             cond = this.condicion.interpretar(arbol, tablaFor);
-            if (cond instanceof Errores) {
-                return cond;
-            }
+            if (cond instanceof Errores) return cond;
 
-            if (this.condicion.tipo.getTipo() != tipoDato.BOOLEANO) {
-                Errores err = new Errores(
-                        "SEMANTICO",
-                        "La condición del ciclo for no es de tipo booleano",
-                        this.linea, this.col
-                );
+            if (!(cond instanceof Boolean)) {
+                Errores err = new Errores("SEMANTICO",
+                        "La condición del ciclo for debe ser booleana",
+                        this.linea, this.col);
                 arbol.getErrores().add(err);
                 return err;
             }
